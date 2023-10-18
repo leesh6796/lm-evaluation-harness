@@ -14,6 +14,8 @@ from lm_eval.tasks import include_path
 
 from typing import Union
 
+from transformers import KVControl
+
 
 def parse_eval_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -218,3 +220,4 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
 if __name__ == "__main__":
     cli_evaluate()
+    # pass

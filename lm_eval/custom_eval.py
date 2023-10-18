@@ -14,6 +14,8 @@ import lm_eval.tasks
 import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
+from lm_eval.api.model import LM
+from lm_eval.api.task import Task
 
 from lm_eval.utils import (
     positional_deprecated,
@@ -26,10 +28,68 @@ from lm_eval.utils import (
 from lm_eval.logger import eval_logger
 
 from transformers import KVControl
+from typing import Union
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
+
+
+def get_model(
+    model: str,
+    model_args: str,
+    batch_size: int = 1,
+    max_batch_size: int = 1,
+    device=None,
+) -> LM:
+    if isinstance(model, str):
+        if model_args is None:
+            model_args = ""
+        lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
+            model_args,
+            {
+                "batch_size": batch_size,
+                "max_batch_size": max_batch_size,
+                "device": device,
+            },
+        )
+    else:
+        assert isinstance(model, lm_eval.api.model.LM)
+        lm = model
+
+    return lm
+
+
+@positional_deprecated
+def create_inputs(tasks=[], num_fewshot=None, limit=None):
+    assert (
+        tasks != []
+    ), "No tasks specified, or no tasks found. Please verify the task names."
+
+    task_dict: dict[str, Union[tuple, Task]] = lm_eval.tasks.get_task_dict(tasks)
+
+    reqs: tuple[str, tuple] = []  # (task_name, (doc, fewshot_ctx))
+    # get lists of each type of request
+    for task_name, task in task_dict.items():
+        if type(task) is tuple:
+            group, task = task
+            if task is None:
+                continue
+        task: Task = task
+
+        if limit is not None:
+            if task.has_test_docs():
+                task_docs = task.test_docs()
+            elif task.has_validation_docs():
+                task_docs = task.validation_docs()
+            else:
+                raise RuntimeError("Task has neither test_docs nor validation_docs")
+            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
+
+        # [(doc, fewshot_ctx), ...]
+        reqs.append(task.build_fewshots_reqs(num_reqs=limit, num_fewshots=num_fewshot))
+
+    return reqs
 
 
 @positional_deprecated
@@ -81,11 +141,11 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    random.seed(0)
-    np.random.seed(1234)
-    torch.manual_seed(
-        1234
-    )  # TODO: this may affect training runs that are run with evaluation mid-run.
+    # random.seed(0)
+    # np.random.seed(1234)
+    # torch.manual_seed(
+    # 1234
+    # )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
     assert (
         tasks != []
@@ -285,6 +345,10 @@ def evaluate(
 
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
+    from pprint import pprint
+
+    kv_ctrl = KVControl()
+
     for reqtype, reqs in requests.items():
         # reqtype: loglikelihood or OUTPUT_TYPE
         eval_logger.info("Running {} requests".format(reqtype))
@@ -297,6 +361,11 @@ def evaluate(
             for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
+        if kv_ctrl.mode == "prepare":
+            # if we are in prepare mode, then we don't need to run the model
+            # just return the requests
+            continue
+
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
@@ -306,6 +375,10 @@ def evaluate(
 
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
+
+    if kv_ctrl.mode == "prepare":
+        kv_ctrl.requests = cloned_reqs
+        pprint(cloned_reqs)
 
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)

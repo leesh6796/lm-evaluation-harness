@@ -40,6 +40,8 @@ from lm_eval.api.registry import (
     AGGREGATION_REGISTRY,
 )
 
+from transformers import KVControl
+
 ALL_OUTPUT_TYPES = [
     "loglikelihood",
     "multiple_choice",
@@ -213,8 +215,13 @@ class Task(abc.ABC):
                 filter_pipeline = build_filter_ensemble(name, components)
                 self._filters.append(filter_pipeline)
 
+        # >>> shlee
+        # WARNING: 호출 안되는 것 같음.
+        # harness seed 설정
+        # kv_ctrl = KVControl()
+        # seed_harness = 1234 if kv_ctrl.seed_harness is None else kv_ctrl.seed_harness
         self.sampler = samplers.Sampler(
-            list(self.fewshot_docs()), self, rnd=random.Random(1234)
+            list(self.fewshot_docs()), self, rnd=random.Random()
         )
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None) -> None:
@@ -344,6 +351,34 @@ class Task(abc.ABC):
     @abc.abstractmethod
     def doc_to_target(self, doc):
         pass
+
+    def build_fewshots_reqs(
+        self, num_reqs: int, num_fewshots: int
+    ) -> list[tuple[Any, Any]]:
+        ## >>> shlee
+        """
+        doc를 샘플링해 fewshot context를 붙여 return.
+        tuple[doc, fewshot_ctx]의 list를 return한다.
+        """
+        if self.has_test_docs():
+            docs = self.test_docs()
+        elif self.has_validation_docs():
+            docs = self.validation_docs()
+        else:
+            assert (
+                False
+            ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+
+        doc_samples = random.choices(docs, k=num_reqs)
+        generated_reqs = []
+        for i, doc in enumerate(doc_samples):
+            fewshot_ctx = self.fewshot_context(
+                doc,
+                num_fewshots,
+            )
+            generated_reqs.append((doc, fewshot_ctx))
+
+        return generated_reqs
 
     def build_all_requests(self, limit=None, rank=None, world_size=None) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -636,11 +671,19 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         if self.fewshot_docs() is not None:
+            # >>> shlee
+            # harness seed 설정
+            # kv_ctrl = KVControl()
+            # seed_harness = (
+            #     1234 if kv_ctrl.seed_harness is None else kv_ctrl.seed_harness
+            # )
+
             self.sampler = samplers.get_sampler(
                 self.config.fewshot_config.get("sampler", "default")
                 if self.config.fewshot_config
                 else "default"
-            )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
+            )(list(self.fewshot_docs()), self, rnd=random.Random())
+            # print("harness seed 설정 2")
 
         if self.has_test_docs():
             self.task_docs = self.test_docs()
