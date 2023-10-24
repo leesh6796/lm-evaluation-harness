@@ -266,6 +266,7 @@ def evaluate(
                     eval_logger.info(f"Request: {str(inst)}")
 
         # aggregate Instances by LM method requested to get output.
+        # loglikelihood, loglikelihood_rolling, greedy_until로 나뉜다.
         reqtype = (
             "loglikelihood"
             if task.OUTPUT_TYPE == "multiple_choice"

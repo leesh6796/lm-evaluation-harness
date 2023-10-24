@@ -28,7 +28,7 @@ from lm_eval.utils import (
 from lm_eval.logger import eval_logger
 
 from transformers import KVControl
-from typing import Union
+from typing import Union, Any
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -61,14 +61,19 @@ def get_model(
 
 
 @positional_deprecated
-def create_inputs(tasks=[], num_fewshot=None, limit=None):
+def create_inputs(tasks=[], num_fewshot=None, limit=None) -> list[tuple[str, Any]]:
+    """
+    각 task에서 doc를 랜덤으로 추출한 후, fewshot example을 붙여 return 한다.
+    return: [(task_name: str, fewshot_ctx), ...)]
+    """
+
     assert (
         tasks != []
     ), "No tasks specified, or no tasks found. Please verify the task names."
 
     task_dict: dict[str, Union[tuple, Task]] = lm_eval.tasks.get_task_dict(tasks)
 
-    reqs: tuple[str, tuple] = []  # (task_name, (doc, fewshot_ctx))
+    reqs: list[tuple[str, tuple]] = []  # (task_name, list[fewshot_ctx])
     # get lists of each type of request
     for task_name, task in task_dict.items():
         if type(task) is tuple:
@@ -86,10 +91,20 @@ def create_inputs(tasks=[], num_fewshot=None, limit=None):
                 raise RuntimeError("Task has neither test_docs nor validation_docs")
             limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
 
-        # [(doc, fewshot_ctx), ...]
-        reqs.append(task.build_fewshots_reqs(num_reqs=limit, num_fewshots=num_fewshot))
+        # [(task_name: str, fewshot_ctx), ...]
+        # fewshot_ctx는 doc와 fewshot examples을 포함한다.
+        reqs.append(
+            (
+                task_name,
+                task.build_fewshot_prompts(num_reqs=limit, num_fewshots=num_fewshot),
+            )
+        )
 
     return reqs
+
+
+# @positional_deprecated
+# def
 
 
 @positional_deprecated

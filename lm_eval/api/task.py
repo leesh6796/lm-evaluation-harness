@@ -352,13 +352,10 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_fewshots_reqs(
-        self, num_reqs: int, num_fewshots: int
-    ) -> list[tuple[Any, Any]]:
+    def build_fewshot_prompts(self, num_reqs: int, num_fewshots: int) -> list[str]:
         ## >>> shlee
         """
         doc를 샘플링해 fewshot context를 붙여 return.
-        tuple[doc, fewshot_ctx]의 list를 return한다.
         """
         if self.has_test_docs():
             docs = self.test_docs()
@@ -371,12 +368,14 @@ class Task(abc.ABC):
 
         doc_samples = random.choices(docs, k=num_reqs)
         generated_reqs = []
+        from pprint import pprint
+
         for i, doc in enumerate(doc_samples):
             fewshot_ctx = self.fewshot_context(
                 doc,
                 num_fewshots,
             )
-            generated_reqs.append((doc, fewshot_ctx))
+            generated_reqs.append(fewshot_ctx)
 
         return generated_reqs
 

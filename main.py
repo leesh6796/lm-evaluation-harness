@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import time
 
 from lm_eval import tasks, evaluator, utils, custom_eval
 from pprint import pprint
@@ -10,6 +11,7 @@ import gc
 import pickle
 
 from transformers import KVControl
+from vllm import LLM, SingleRepo
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
@@ -79,25 +81,100 @@ def main():
     #     max_batch_size=args.max_batch_size,
     #     device=args.device,
     # )
-    reqs0 = custom_eval.create_inputs(task_names, args.num_fewshot, args.limit)[0]
-    print("1번 시드")
+    inputs = custom_eval.create_inputs(task_names, args.num_fewshot, args.limit)
     # pprint(reqs)
+    # for i in range(len(reqs[1])):
+    #     print(reqs[1][i])
+    #     print("=====================================")
 
-    reqs1 = custom_eval.create_inputs(task_names, args.num_fewshot, args.limit)[0]
-    print("1번 시드")
-    # pprint(reqs)
+    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
-    reqs2 = custom_eval.create_inputs(task_names, args.num_fewshot, args.limit)[0]
-    print("2번 시드")
-    # pprint(reqs)
+    MODEL_DIR = "/mnt/models/llama/llama-2-7b-chat-hf/"
+    model = LLM(MODEL_DIR)
+    tokenizer = model.llm_engine.tokenizer
+    repo = SingleRepo()
 
-    print(f"len(reqs0)={len(reqs0)}")
-    print(f"len(reqs1)={len(reqs1)}")
-    print(f"len(reqs2)={len(reqs2)}")
+    prompts = []
+    vllm_token_ids = []
+    for task, reqs in inputs:
+        for req in reqs:
+            print("tokenizer=====================================")
+            vllm_token_ids.append(tokenizer.encode(req))
+            print(vllm_token_ids[-1])
+            print("=====================================")
+            prompts.append(req)
 
-    pprint(reqs0[0])
-    pprint(reqs1[0])
-    pprint(reqs2[0])
+    # print("prompts length:")
+    # for i in range(len(prompts)):
+    #     print(f"len: {len(tokenizer.encode(prompts[i]))}")
+    # model.generate(prompts)
+
+    ## 1. warmup
+
+    ## 1-1. warmup with prompts
+    for prompt in prompts:
+        model.generate(prompt)
+
+    ## 1-2. quantize delta
+    repo.kv.encode_to_delta(use_tqdm=True)
+
+    ## 1-3. phase change from warmup to inference
+    repo.kv.set_start_inference()
+
+    KVControl().repo = repo
+    KVControl().kv = repo.kv
+
+    ## 2. inference
+    print("model 삭제 시작")
+    del model
+    torch.cuda.empty_cache()
+    gc.collect()
+    torch.cuda.empty_cache()
+
+    # import time
+
+    time.sleep(5)
+
+    from transformers import pipeline, TextGenerationPipeline
+
+    print("pipeline 시작")
+
+    generator: TextGenerationPipeline = pipeline(
+        "text-generation",
+        model="/mnt/models/llama/llama-2-7b-chat-hf/",
+        device_map="auto"  # host의 모든 GPU에 자동으로 mapping 된다.
+        # device="0,1",  # (0부터 GPU, -1은 CPU). device_map을 주석 처리하고 사용한다.
+    )
+    generator.tokenizer.pad_token_id = generator.model.config.eos_token_id
+
+    # 왠지 모르겠는데 model이 fp32로 저장돼있으므로, fp16으로 바꿔준다.
+    for param in generator.model.parameters():
+        # Check if parameter dtype is  Float (float32)
+        if param.dtype == torch.float32:
+            param.data = param.data.to(torch.float16)
+
+    print("trained keys:", sorted(repo.kv.cache.keys()))
+
+    print("generator 시작")
+    num_prompts = 1
+    inputs = prompts[:num_prompts]
+    res = generator(inputs, batch_size=len(inputs))
+    print(res)
+
+    print(KVControl().input_ids)
+
+    v = KVControl().input_ids[0].tolist()
+    t = list(vllm_token_ids[0])[1:]  # 1번 <sos>는 뺀다.
+    print(v)
+    print(t)
+    print(len(v), len(t))
+
+    diff_idx = []
+    for i in range(len(v)):
+        if v[i] != t[i]:
+            diff_idx.append(i)
+    print(f"different index: {diff_idx}")
 
 
 if __name__ == "__main__":

@@ -488,6 +488,7 @@ class HFLM(LM):
             A torch tensor of shape [batch, sequence, vocab] with the
         logits returned from the model's decoder
         """
+
         with torch.no_grad():
             if attn_mask is not None or labels is not None:
                 assert attn_mask is not None and labels is not None
