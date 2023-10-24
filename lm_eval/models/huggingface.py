@@ -101,7 +101,9 @@ class HFLM(LM):
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, (int, str))
 
-        gpus = torch.cuda.device_count()
+        # gpus = torch.cuda.device_count()
+        # >>> shlee (data-parallel 필요 없으므로 1로 고정)
+        gpus = 1
         accelerator = Accelerator()
 
         if not (parallelize or accelerator.num_processes > 1):
@@ -192,15 +194,32 @@ class HFLM(LM):
                         model_kwargs["bnb_4bit_compute_dtype"] = utils.get_dtype(
                             bnb_4bit_compute_dtype
                         )
-            self._model = self.AUTO_MODEL_CLASS.from_pretrained(
-                pretrained,
-                revision=revision,
-                torch_dtype=utils.get_dtype(dtype),
-                low_cpu_mem_usage=low_cpu_mem_usage,
-                trust_remote_code=trust_remote_code,
-                load_in_8bit=load_in_8bit,
-                **model_kwargs,
+            from transformers import pipeline, TextGenerationPipeline
+
+            generator: TextGenerationPipeline = pipeline(
+                "text-generation",
+                model=pretrained,
+                device_map="auto",  # host의 모든 GPU에 자동으로 mapping 된다.
             )
+            self._model = generator.model
+            self.tokenizer = generator.tokenizer
+            for param in self._model.parameters():
+                # Check if parameter dtype is  Float (float32)
+                if param.dtype == torch.float32:
+                    param.data = param.data.to(torch.float16)
+
+            # self._model = self.AUTO_MODEL_CLASS.from_pretrained(
+            #     pretrained,
+            #     revision=revision,
+            #     torch_dtype=utils.get_dtype(dtype),
+            #     low_cpu_mem_usage=low_cpu_mem_usage,
+            #     trust_remote_code=trust_remote_code,
+            #     load_in_8bit=load_in_8bit,
+            #     ## >>> shlee
+            #     ## auto를 넣어주면 hf에서 자동으로 multi-gpu load
+            #     device_map="auto",
+            #     **model_kwargs,
+            # )
         else:
             try:
                 from auto_gptq import AutoGPTQForCausalLM
@@ -231,21 +250,22 @@ class HFLM(LM):
         # forever after, access self._model through self.model property
         self.model.eval()
         self.model.tie_weights()
-        if gpus <= 1 and not parallelize:
-            # place model onto device, if not using HF Accelerate in any form
-            try:
-                self.model.to(self.device)
-            except ValueError:
-                eval_logger.info(
-                    "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
-                )
+        ## >>> shlee (여기 지워야 한다)
+        # if gpus <= 1 and not parallelize:
+        #     # place model onto device, if not using HF Accelerate in any form
+        #     try:
+        #         self.model.to(self.device)
+        #     except ValueError:
+        #         eval_logger.info(
+        #             "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
+        #         )
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            pretrained if tokenizer is None else tokenizer,
-            revision=revision,
-            trust_remote_code=trust_remote_code,
-            use_fast=use_fast_tokenizer,
-        )
+        # self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+        #     pretrained if tokenizer is None else tokenizer,
+        #     revision=revision,
+        #     trust_remote_code=trust_remote_code,
+        #     use_fast=use_fast_tokenizer,
+        # )
 
         self.truncation = truncation
 
@@ -266,6 +286,7 @@ class HFLM(LM):
             self.batch_size_per_gpu = int(batch_size)
 
         # multigpu data-parallel support when launched with accelerate
+        # >>> shlee (data-parallel part 필요 없음)
         if gpus > 1:
             if parallelize:
                 if accelerator.num_processes > 1:

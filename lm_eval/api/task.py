@@ -220,9 +220,9 @@ class Task(abc.ABC):
         # harness seed 설정
         # kv_ctrl = KVControl()
         # seed_harness = 1234 if kv_ctrl.seed_harness is None else kv_ctrl.seed_harness
-        self.sampler = samplers.Sampler(
-            list(self.fewshot_docs()), self, rnd=random.Random()
-        )
+        # self.sampler = samplers.Sampler(
+        # list(self.fewshot_docs()), self, rnd=random.Random()
+        # )
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None) -> None:
         """Downloads and returns the task dataset.
@@ -352,8 +352,10 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_fewshot_prompts(self, num_reqs: int, num_fewshots: int) -> list[str]:
-        ## >>> shlee
+    ## >>> shlee
+    def build_fewshot_prompts(
+        self, num_reqs: int, num_fewshots: int
+    ) -> tuple[list, list]:
         """
         doc를 샘플링해 fewshot context를 붙여 return.
         """
@@ -367,17 +369,40 @@ class Task(abc.ABC):
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         doc_samples = random.choices(docs, k=num_reqs)
-        generated_reqs = []
-        from pprint import pprint
+        docs = []
+        fewshot_contexts = []
 
         for i, doc in enumerate(doc_samples):
             fewshot_ctx = self.fewshot_context(
                 doc,
                 num_fewshots,
             )
-            generated_reqs.append(fewshot_ctx)
+            docs.append(doc)
+            fewshot_contexts.append(fewshot_ctx)
 
-        return generated_reqs
+        return docs, fewshot_contexts
+
+    ## >>> shlee
+    def build_custom_requests(self, docs: list, fewshot_contexts: list):
+        # build_all_requests()는 original evaluator
+        # build_custom_requests()는 custom evaluator에서 사용한다.
+        eval_logger.info(f"Building contexts for task '{self.config.task}'...")
+
+        instances = []
+        for doc_id, (doc, fewshot_ctx) in enumerate(zip(docs, fewshot_contexts)):
+            inst = self.construct_requests(
+                doc=doc,
+                ctx=fewshot_ctx,
+                metadata=(self.config["task"], doc_id, self.config.repeats),
+            )  # WARNING: self.config.repeats에 뭐가 들어있을 지 모른다.
+
+            if not isinstance(inst, list):
+                inst = [inst]
+
+            instances.extend(inst)
+
+        self._instances = instances
+        assert len(self._instances) != 0, "task.build_requests() did not find any docs!"
 
     def build_all_requests(self, limit=None, rank=None, world_size=None) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""

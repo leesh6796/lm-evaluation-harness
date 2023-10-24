@@ -1,4 +1,4 @@
-import random
+# import random
 import itertools
 import json
 import collections
@@ -29,10 +29,23 @@ from lm_eval.logger import eval_logger
 
 from transformers import KVControl
 from typing import Union, Any
+from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
+
+
+@dataclass
+class TaskPrompt:
+    # a task prompt contains several fewshot prompts
+    task: Task
+    task_name: str
+    docs: list
+    fewshot_contexts: list
+
+    def unpack(self):
+        return self.task, self.task_name, self.docs, self.fewshot_contexts
 
 
 def get_model(
@@ -50,7 +63,7 @@ def get_model(
             {
                 "batch_size": batch_size,
                 "max_batch_size": max_batch_size,
-                "device": device,
+                # "device": device,
             },
         )
     else:
@@ -61,10 +74,12 @@ def get_model(
 
 
 @positional_deprecated
-def create_inputs(tasks=[], num_fewshot=None, limit=None) -> list[tuple[str, Any]]:
+def create_inputs(
+    tasks=[], num_fewshot=None, limit=None
+) -> tuple[TaskPrompt, collections.defaultdict]:
     """
     각 task에서 doc를 랜덤으로 추출한 후, fewshot example을 붙여 return 한다.
-    return: [(task_name: str, fewshot_ctx), ...)]
+    return: [(task_name: str, fewshot_ctx), ...)], task_hierarchy
     """
 
     assert (
@@ -72,15 +87,23 @@ def create_inputs(tasks=[], num_fewshot=None, limit=None) -> list[tuple[str, Any
     ), "No tasks specified, or no tasks found. Please verify the task names."
 
     task_dict: dict[str, Union[tuple, Task]] = lm_eval.tasks.get_task_dict(tasks)
+    # store the hierarchy to do proper ordering
+    task_hierarchy = collections.defaultdict(list)
 
-    reqs: list[tuple[str, tuple]] = []  # (task_name, list[fewshot_ctx])
+    task_prompts: list[TaskPrompt] = []
     # get lists of each type of request
     for task_name, task in task_dict.items():
         if type(task) is tuple:
-            group, task = task
-            if task is None:
-                continue
+            group_name, task = task
+            task_hierarchy[group_name].append(task_name)
+        else:
+            task_hierarchy[task_name] = []
+        if task is None:
+            continue
         task: Task = task
+        task_prompt = TaskPrompt(
+            task=task, task_name=task_name, docs=None, fewshot_contexts=None
+        )
 
         if limit is not None:
             if task.has_test_docs():
@@ -93,18 +116,227 @@ def create_inputs(tasks=[], num_fewshot=None, limit=None) -> list[tuple[str, Any
 
         # [(task_name: str, fewshot_ctx), ...]
         # fewshot_ctx는 doc와 fewshot examples을 포함한다.
-        reqs.append(
-            (
-                task_name,
-                task.build_fewshot_prompts(num_reqs=limit, num_fewshots=num_fewshot),
-            )
+        docs, fewshot_contexts = task.build_fewshot_prompts(
+            num_reqs=limit, num_fewshots=num_fewshot
         )
+        task_prompt.docs = docs
+        task_prompt.fewshot_contexts = fewshot_contexts
 
-    return reqs
+        task_prompts.append(task_prompt)
+
+    return task_prompts, task_hierarchy
 
 
-# @positional_deprecated
-# def
+@positional_deprecated
+def custom_evaluate(
+    model: str,
+    model_args: str,
+    task_prompts: list[TaskPrompt],
+    task_hierarchy: collections.defaultdict,
+    log_samples: bool = True,
+) -> dict:
+    lm = get_model(model, model_args)
+    bootstrap_iters: int = 100000  # ?
+
+    for i, param in enumerate(lm._model.parameters()):
+        # Check if parameter dtype is  Float (float32)
+        if param.dtype == torch.float16:
+            param.data = param.data.to(torch.float16)
+            print(i, param.data.device)
+    # exit(-1)
+
+    # stores the final result for each task, for each metric/filter pair.
+    results = collections.defaultdict(dict)
+    # Tracks each task's version.
+    versions = collections.defaultdict(dict)
+    # tracks all Instances/requests a model must generate output on.
+    requests = collections.defaultdict(list)
+    # logs info about each document evaluated.
+    samples = collections.defaultdict(list)
+    # Aggregated task scores presented with groups
+    results_agg = collections.defaultdict(dict)
+    # Aggregated groups scores only
+    groups_agg = collections.defaultdict(dict)
+    # store the ordering of tasks and groups
+    task_order = collections.defaultdict(int)
+    # store the aggregation for aggregating across tasks in the same group
+    sample_agg_fn = collections.defaultdict(dict)
+
+    for task_prompt in task_prompts:
+        task, task_name, docs, fewshot_contexts = task_prompt.unpack()
+        task.build_custom_requests(docs, fewshot_contexts)
+        eval_logger.info(
+            f"Task: {task_name}; number of requests: {len(task.instances)}"
+        )
+        reqtype = (
+            "loglikelihood"
+            if task.OUTPUT_TYPE == "multiple_choice"
+            else task.OUTPUT_TYPE
+        )  # TODO: this is hacky, fix in task.py
+        requests[reqtype].extend(task.instances)
+
+    for reqtype, reqs in requests.items():
+        # reqtype: loglikelihood or OUTPUT_TYPE
+        eval_logger.info("Running {} requests".format(reqtype))
+        # create `K` copies of each request `req` based off `K = req.repeats`
+        cloned_reqs = []
+        for req in reqs:
+            cloned_reqs.extend([req] * req.repeats)
+
+        # run requests through model
+        resps = getattr(lm, reqtype)(cloned_reqs)
+
+        # put responses from model into a list of length K for each request.
+        for x, req in zip(resps, cloned_reqs):
+            req.resps.append(x)
+
+    ### Postprocess outputs ###
+    # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
+    for task_prompt in task_prompts:
+        task_prompt.task.apply_filters()
+
+    ### Collect values of metrics on all datapoints ###
+    vals = collections.defaultdict(list)
+
+    for task_prompt in task_prompts:
+        task = task_prompt.task
+        task_name = task_prompt.task_name
+        for key in task.instances[0].filtered_resps.keys():
+            for doc_id, doc in enumerate(task_prompt.docs):
+                # subset instances to only this document id ; sort by idx
+                requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
+                requests.sort(key=lambda x: x.idx)
+                metrics = task.process_results(
+                    doc, [req.filtered_resps[key] for req in requests]
+                )
+                if log_samples:
+                    target = task.doc_to_target(doc)
+                    example = {
+                        "doc_id": doc_id,
+                        "doc": doc,
+                        "target": target,
+                        "arguments": [req.args for req in requests],
+                        "resps": [req.resps for req in requests],
+                        "filtered_resps": [req.filtered_resps[key] for req in requests],
+                    }
+                    example.update(metrics)
+                    samples[task_name].append(example)
+                for metric, value in metrics.items():
+                    vals[(task_name, key, metric)].append(value)
+
+    task_dict = {}
+    for task_prompt in task_prompts:
+        task_dict[task_prompt.task_name] = task_prompt.task
+
+    ### Get task ordering for correct sample-wide aggregation
+    group_to_task = {}
+    for group in task_hierarchy.keys():
+        if group not in task_order:
+            task_order[group] = 0
+
+        if len(task_hierarchy[group]) > 0:
+            group_to_task[group] = task_hierarchy[group].copy()
+
+        for task in task_hierarchy[group]:
+            if task in task_order:
+                task_order[task] += 1
+            else:
+                task_order[task] = 1 + task_order[group]
+
+            if task in task_hierarchy:
+                group_to_task[group].remove(task)
+                group_to_task[group].extend(task_hierarchy[task])
+
+        task_to_group = {}
+        for group in group_to_task:
+            for task in group_to_task[group]:
+                if task in task_to_group:
+                    task_to_group[task].append(group)
+                else:
+                    task_to_group[task] = [group]
+
+        ### Aggregate results over all datapoints ###
+        # aggregate results ; run bootstrap CIs
+        for (task_name, key, metric), items in vals.items():
+            task = task_dict[task_name]
+            metric_key = metric + "," + key
+
+            if type(task) == tuple:
+                group_name, task = task
+            else:
+                group_name = None
+
+            agg_fn = task.aggregation()[metric]
+            task_score = agg_fn(items)
+
+            if group_name is not None:
+                sample_metric_key = metric + "(sample agg)," + key
+                for grouping in task_to_group[task_name]:
+                    if metric_key in results[grouping]:
+                        results[grouping][metric_key].append(task_score)
+                    else:
+                        results[grouping][metric_key] = [task_score]
+
+                    if sample_metric_key in results[grouping]:
+                        results[grouping][sample_metric_key] += items
+                    else:
+                        results[grouping][sample_metric_key] = items.copy()
+                        sample_agg_fn[grouping][sample_metric_key] = agg_fn
+
+            results[task_name][metric_key] = task_score
+
+            # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
+            # so we run them less iterations. still looking for a cleaner way to do this
+            if bootstrap_iters > 0:
+                stderr = lm_eval.api.metrics.stderr_for_metric(
+                    metric=task.aggregation()[metric],
+                    bootstrap_iters=min(bootstrap_iters, 100)
+                    if metric in ["bleu", "chrf", "ter"]
+                    else bootstrap_iters,
+                )
+
+                if stderr is not None:
+                    results[task_name][metric + "_stderr" + "," + key] = stderr(items)
+
+        if bool(results):
+            for task_or_group in results.keys():
+                for metric in results[task_or_group].keys():
+                    if type(results[task_or_group][metric]) == list:
+                        if "(sample agg)" in metric:
+                            results[task_or_group][metric] = sample_agg_fn[
+                                task_or_group
+                            ][metric](results[task_or_group][metric])
+                        else:
+                            results[task_or_group][metric] = np.average(
+                                results[task_or_group][metric]
+                            )
+                        versions[task_or_group] = "N/A"
+
+        for task_name, task in task_dict.items():
+            if type(task) == tuple:
+                group_name, task = task
+                order = task_order[group_name]
+                tabbed_name = "-" * order + group_name
+                results_agg[tabbed_name] = results[group_name]
+                versions[tabbed_name] = versions[group_name]
+                if order == 0:
+                    groups_agg[group_name] = results[group_name]
+
+            order = task_order[task_name]
+            tabbed_name = "-" * order + task_name
+            results_agg[tabbed_name] = results[task_name]
+            versions[tabbed_name] = versions[task_name]
+
+        results_dict = {
+            "results": dict(results_agg.items()),
+            **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
+            # "configs": dict(sorted(configs.items())),
+            "versions": dict(sorted(versions.items())),
+        }
+        if log_samples:
+            results_dict["samples"] = dict(samples)
+
+        return results_dict
 
 
 @positional_deprecated

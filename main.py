@@ -11,6 +11,7 @@ import gc
 import pickle
 
 from transformers import KVControl
+from transformers import pipeline, TextGenerationPipeline
 from vllm import LLM, SingleRepo
 
 logging.getLogger("openai").setLevel(logging.WARNING)
@@ -81,7 +82,29 @@ def main():
     #     max_batch_size=args.max_batch_size,
     #     device=args.device,
     # )
-    inputs = custom_eval.create_inputs(task_names, args.num_fewshot, args.limit)
+
+    task_prompts, task_hierarchy = custom_eval.create_inputs(
+        task_names, args.num_fewshot, args.limit
+    )
+    custom_eval.custom_evaluate(
+        args.model, args.model_args, task_prompts, task_hierarchy
+    )
+
+    # generator: TextGenerationPipeline = pipeline(
+    #     "text-generation",
+    #     model="/mnt/models/llama/llama-2-7b-chat-hf/",
+    #     device_map="auto",  # host의 모든 GPU에 자동으로 mapping 된다.
+    # )
+    # generator.tokenizer.pad_token_id = generator.model.config.eos_token_id
+
+    # 왠지 모르겠는데 model이 fp32로 저장돼있으므로, fp16으로 바꿔준다.
+    # for i, param in enumerate(generator.model.parameters()):
+    #     # Check if parameter dtype is  Float (float32)
+    #     if param.dtype == torch.float32:
+    #         param.data = param.data.to(torch.float16)
+    #         print(i, param.data.device)
+
+    exit(-1)
     # pprint(reqs)
     # for i in range(len(reqs[1])):
     #     print(reqs[1][i])
@@ -90,6 +113,8 @@ def main():
     # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
+    # custom_eval.custom_evaluate(args.model, args.model_args, inputs)
+
     MODEL_DIR = "/mnt/models/llama/llama-2-7b-chat-hf/"
     model = LLM(MODEL_DIR)
     tokenizer = model.llm_engine.tokenizer
@@ -97,13 +122,13 @@ def main():
 
     prompts = []
     vllm_token_ids = []
-    for task, reqs in inputs:
-        for req in reqs:
+    for task_prompt in task_prompts:
+        for fewshot_ctx in task_prompt.fewshot_contexts:
             print("tokenizer=====================================")
-            vllm_token_ids.append(tokenizer.encode(req))
+            vllm_token_ids.append(tokenizer.encode(fewshot_ctx))
             print(vllm_token_ids[-1])
             print("=====================================")
-            prompts.append(req)
+            prompts.append(fewshot_ctx)
 
     # print("prompts length:")
     # for i in range(len(prompts)):
@@ -135,8 +160,6 @@ def main():
     # import time
 
     time.sleep(5)
-
-    from transformers import pipeline, TextGenerationPipeline
 
     print("pipeline 시작")
 
