@@ -83,12 +83,15 @@ def main():
     #     device=args.device,
     # )
 
+    import random
+
+    random.seed(1003)
     task_prompts, task_hierarchy = custom_eval.create_inputs(
         task_names, args.num_fewshot, args.limit
     )
-    custom_eval.custom_evaluate(
-        args.model, args.model_args, task_prompts, task_hierarchy
-    )
+    # custom_eval.custom_evaluate(
+    #     args.model, args.model_args, task_prompts, task_hierarchy
+    # )
 
     # generator: TextGenerationPipeline = pipeline(
     #     "text-generation",
@@ -104,7 +107,6 @@ def main():
     #         param.data = param.data.to(torch.float16)
     #         print(i, param.data.device)
 
-    exit(-1)
     # pprint(reqs)
     # for i in range(len(reqs[1])):
     #     print(reqs[1][i])
@@ -125,10 +127,11 @@ def main():
     for task_prompt in task_prompts:
         for fewshot_ctx in task_prompt.fewshot_contexts:
             print("tokenizer=====================================")
-            vllm_token_ids.append(tokenizer.encode(fewshot_ctx))
+            vllm_token_ids.append(tokenizer.encode(fewshot_ctx)[1:])
             print(vllm_token_ids[-1])
             print("=====================================")
             prompts.append(fewshot_ctx)
+    repo.kv.vllm_input_ids = vllm_token_ids
 
     # print("prompts length:")
     # for i in range(len(prompts)):
@@ -162,6 +165,50 @@ def main():
     time.sleep(5)
 
     print("pipeline 시작")
+
+    tables = []
+    for i in range(2):
+        results_dict = custom_eval.custom_evaluate(
+            args.model, args.model_args, task_prompts, task_hierarchy
+        )
+
+        if results_dict is not None:
+            # if args.log_samples:
+            #     samples = results_dict.pop("samples")
+            dumped = json.dumps(results_dict, indent=2, default=lambda o: str(o))
+            # if args.show_config:
+            print(dumped)
+
+            # batch_sizes = ",".join(map(str, results_dict["config"]["batch_sizes"]))
+
+            # if args.output_path:
+            #     output_path_file.open("w").write(dumped)
+
+            #     if args.log_samples:
+            #         for task_name, config in results_dict["configs"].items():
+            #             output_name = "{}_{}".format(
+            #                 re.sub("/|=", "__", args.model_args), task_name
+            #             )
+            #             filename = path.joinpath(f"{output_name}.jsonl")
+
+            #             with jsonlines.open(filename, "w") as f:
+            #                 f.write_all(samples[task_name])
+
+            print(
+                f"{args.model} ({args.model_args}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
+                f"batch_size: {args.batch_size}"
+            )
+            print(evaluator.make_table(results_dict))
+            if "groups" in results_dict:
+                table = evaluator.make_table(results_dict, "groups")
+                tables.append(table)
+                print(table)
+        if KVControl().phase == "full":
+            KVControl().phase = "delta"
+
+    pprint(tables)
+
+    exit(-1)
 
     generator: TextGenerationPipeline = pipeline(
         "text-generation",

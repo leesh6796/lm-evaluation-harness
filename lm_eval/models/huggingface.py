@@ -6,6 +6,7 @@ from transformers.models.auto.modeling_auto import (
     MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
     MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
 )
+from transformers import KVControl
 from peft import __version__ as PEFT_VERSION, PeftModel
 
 import copy
@@ -710,6 +711,9 @@ class HFLM(LM):
             # again because vectorizing is annoying
 
             for _, context_enc, continuation_enc in chunk:
+                print("context_enc: ", context_enc)
+                print("continuation_enc: ", continuation_enc)
+                KVControl().repo.kv.context_length = len(context_enc)
                 # sanity check
                 assert len(context_enc) > 0
                 assert len(continuation_enc) > 0

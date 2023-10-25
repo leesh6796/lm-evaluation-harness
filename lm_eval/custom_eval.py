@@ -142,8 +142,6 @@ def custom_evaluate(
         # Check if parameter dtype is  Float (float32)
         if param.dtype == torch.float16:
             param.data = param.data.to(torch.float16)
-            print(i, param.data.device)
-    # exit(-1)
 
     # stores the final result for each task, for each metric/filter pair.
     results = collections.defaultdict(dict)

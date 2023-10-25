@@ -368,6 +368,7 @@ class Task(abc.ABC):
                 False
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
+        random.seed(1005)
         doc_samples = random.choices(docs, k=num_reqs)
         docs = []
         fewshot_contexts = []
