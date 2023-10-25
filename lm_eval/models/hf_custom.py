@@ -77,6 +77,8 @@ class HFLMCustom(LM):
         assert isinstance(batch_size, (int, str))
 
         model_kwargs = {}
+        self.model = None
+        self.tokenizer = None
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -217,6 +219,9 @@ class HFLMCustom(LM):
 
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """ """
+        assert self.model is not None
+        assert self.tokenizer is not None
+
         if add_special_tokens is None:
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
                 add_special_tokens = False
@@ -238,6 +243,9 @@ class HFLMCustom(LM):
         left_truncate_len: int = None,
         truncation: bool = False,
     ):
+        assert self.model is not None
+        assert self.tokenizer is not None
+
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side

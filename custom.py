@@ -75,19 +75,19 @@ def main():
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
 
-    # lm = custom_eval.get_model(
-    #     model=args.model,
-    #     model_args=args.model_args,
-    #     batch_size=args.batch_size,
-    #     max_batch_size=args.max_batch_size,
-    #     device=args.device,
-    # )
-
     import random
 
     random.seed(1003)
     task_prompts, task_hierarchy = custom_eval.create_inputs(
         task_names, args.num_fewshot, args.limit
+    )
+
+    lm = custom_eval.get_model(
+        model=args.model,
+        model_args=args.model_args,
+        batch_size=args.batch_size,
+        max_batch_size=args.max_batch_size,
+        device=args.device,
     )
     # custom_eval.custom_evaluate(
     #     args.model, args.model_args, task_prompts, task_hierarchy

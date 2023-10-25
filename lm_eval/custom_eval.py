@@ -63,7 +63,6 @@ def get_model(
             {
                 "batch_size": batch_size,
                 "max_batch_size": max_batch_size,
-                # "device": device,
             },
         )
     else:
