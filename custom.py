@@ -4,7 +4,7 @@ import logging
 import os
 import time
 
-from lm_eval import tasks, evaluator, utils, custom_eval
+from lm_eval import tasks, evaluator, utils, custom_eval, HFLMCustom
 from pprint import pprint
 import torch
 import gc
@@ -82,13 +82,24 @@ def main():
         task_names, args.num_fewshot, args.limit
     )
 
-    lm = custom_eval.get_model(
+    lm: HFLMCustom = custom_eval.get_model(
         model=args.model,
         model_args=args.model_args,
         batch_size=args.batch_size,
         max_batch_size=args.max_batch_size,
         device=args.device,
     )
+
+    generator: TextGenerationPipeline = pipeline(
+        "text-generation",
+        model="/mnt/models/llama/llama-2-7b-chat-hf/",
+        device_map="auto",  # host의 모든 GPU에 자동으로 mapping 된다.
+    )
+    generator.tokenizer.pad_token_id = generator.model.config.eos_token_id
+    lm.assign_pipeline(generator)
+
+    exit(-1)
+
     # custom_eval.custom_evaluate(
     #     args.model, args.model_args, task_prompts, task_hierarchy
     # )

@@ -90,10 +90,6 @@ class HFLMCustom(LM):
         )
 
         self.truncation = truncation
-
-        self.vocab_size = self.tokenizer.vocab_size
-        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-
         self._max_length = max_length
 
         self.batch_schedule = 1
@@ -107,10 +103,14 @@ class HFLMCustom(LM):
         else:
             self.batch_size_per_gpu = int(batch_size)
 
+    # >>> shlee (반드시 get_model() 후에 pipeline을 assign 해야한다)
     def assign_pipeline(self, pipeline: Pipeline):
         self.pipeline = pipeline
         self.model = pipeline.model
         self.tokenizer = pipeline.tokenizer
+
+        self.vocab_size = self.tokenizer.vocab_size
+        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
         self.model.eval()
         self.model.tie_weights()
