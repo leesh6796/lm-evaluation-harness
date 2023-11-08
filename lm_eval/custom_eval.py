@@ -128,18 +128,22 @@ def create_inputs(
 
 @positional_deprecated
 def custom_evaluate(
-    model: str,
+    model: Union[LM, str],
     model_args: str,
     task_prompts: list[TaskPrompt],
     task_hierarchy: collections.defaultdict,
     log_samples: bool = True,
 ) -> dict:
-    lm = get_model(model, model_args)
+    if type(model) is str:
+        lm = get_model(model, model_args)
+    else:
+        lm = model
+
     bootstrap_iters: int = 100000  # ?
 
-    for i, param in enumerate(lm._model.parameters()):
+    for i, param in enumerate(lm.model.parameters()):
         # Check if parameter dtype is  Float (float32)
-        if param.dtype == torch.float16:
+        if param.dtype != torch.float16:
             param.data = param.data.to(torch.float16)
 
     # stores the final result for each task, for each metric/filter pair.
@@ -181,6 +185,7 @@ def custom_evaluate(
             cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
+        # >>> shlee (여기서 model이 실행된다)
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.

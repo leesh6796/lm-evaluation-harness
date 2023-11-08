@@ -91,6 +91,7 @@ class HFLMCustom(LM):
 
         self.truncation = truncation
         self._max_length = max_length
+        self.device = device
 
         self.batch_schedule = 1
         self.batch_sizes = {}
@@ -114,6 +115,8 @@ class HFLMCustom(LM):
 
         self.model.eval()
         self.model.tie_weights()
+
+        self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
 
     @property
     def config(self):
@@ -155,9 +158,9 @@ class HFLMCustom(LM):
     def batch_size(self):
         return self.batch_size_per_gpu
 
-    @property
-    def device(self):
-        return self._device
+    # @property
+    # def device(self):
+    # return self._device
 
     @property
     def rank(self):
@@ -480,9 +483,10 @@ class HFLMCustom(LM):
             # again because vectorizing is annoying
 
             for _, context_enc, continuation_enc in chunk:
-                print("context_enc: ", context_enc)
-                print("continuation_enc: ", continuation_enc)
-                KVControl().repo.kv.context_length = len(context_enc)
+                # >>> shlee (나중에 확인)
+                # print("context_enc: ", context_enc)
+                # print("continuation_enc: ", continuation_enc)
+                # KVControl().repo.kv.context_length = len(context_enc)
                 # sanity check
                 assert len(context_enc) > 0
                 assert len(continuation_enc) > 0
@@ -563,9 +567,14 @@ class HFLMCustom(LM):
                     "labels": batched_conts,
                 }
 
+            # print(batched_inps.shape)
             multi_logits = F.log_softmax(
                 self._model_call(batched_inps, **call_kwargs), dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
+
+            # >>> shlee (curr_rid 증가)
+            # print("curr_rid: ", KVControl().curr_rid)
+            KVControl().curr_rid += multi_logits.shape[0]
 
             for (cache_key, _, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
@@ -706,6 +715,10 @@ class HFLMCustom(LM):
                     stop=primary_until,
                     **kwargs,
                 )
+
+                # >>> shlee (curr_rid 증가)
+                # print("curr_rid: ", KVControl().curr_rid)
+                KVControl().curr_rid += context_enc.shape[0]
 
                 cont_toks_list = cont.tolist()
                 for cont_toks, context in zip(cont_toks_list, contexts):

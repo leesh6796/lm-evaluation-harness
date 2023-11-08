@@ -12,7 +12,8 @@ import pickle
 
 from transformers import KVControl
 from transformers import pipeline, TextGenerationPipeline
-from vllm import LLM, SingleRepo
+
+# from vllm import LLM, SingleRepo
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
@@ -97,6 +98,51 @@ def main():
     )
     generator.tokenizer.pad_token_id = generator.model.config.eos_token_id
     lm.assign_pipeline(generator)
+
+    ctrl = KVControl()
+    ctrl.kv.set_start_extraction()
+    ctrl.kv.mode = "warmup"
+
+    custom_eval.custom_evaluate(
+        model=lm,
+        model_args=args.model_args,
+        task_prompts=task_prompts,
+        task_hierarchy=task_hierarchy,
+    )
+
+    ctrl.kv.encode_to_delta(use_tqdm=True)
+
+    ctrl.kv.mode = "eval"
+    tables = []
+
+    for i in range(2):
+        ctrl.curr_rid = 0
+        results_dict = custom_eval.custom_evaluate(
+            lm, args.model_args, task_prompts, task_hierarchy
+        )
+
+        if results_dict is not None:
+            dumped = json.dumps(results_dict, indent=2, default=lambda o: str(o))
+            # print(dumped)
+
+            # batch_sizes = ",".join(map(str, results_dict["config"]["batch_sizes"]))
+            print(
+                f"{args.model} ({args.model_args}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
+                f"batch_size: {args.batch_size}"
+            )
+            table = evaluator.make_table(results_dict)
+            print(table)
+            tables.append(table)
+            if "groups" in results_dict:
+                table = evaluator.make_table(results_dict, "groups")
+                tables.append(table)
+                print(table)
+
+        if ctrl.phase == "full":
+            ctrl.phase = "delta"
+
+    print(tables[0])
+    print(tables[1])
 
     exit(-1)
 
