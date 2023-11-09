@@ -368,7 +368,7 @@ class Task(abc.ABC):
                 False
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
-        random.seed(1005)
+        # random.seed(1005)
         doc_samples = random.choices(docs, k=num_reqs)
         docs = []
         fewshot_contexts = []
@@ -707,7 +707,11 @@ class ConfigurableTask(Task):
                 self.config.fewshot_config.get("sampler", "default")
                 if self.config.fewshot_config
                 else "default"
-            )(list(self.fewshot_docs()), self, rnd=random.Random())
+            )(
+                list(self.fewshot_docs()),
+                self,
+                rnd=random.Random(KVControl().random_seed),
+            )
             # print("harness seed 설정 2")
 
         if self.has_test_docs():

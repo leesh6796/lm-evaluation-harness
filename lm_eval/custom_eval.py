@@ -75,7 +75,7 @@ def get_model(
 @positional_deprecated
 def create_inputs(
     tasks=[], num_fewshot=None, limit=None
-) -> tuple[TaskPrompt, collections.defaultdict]:
+) -> tuple[list[TaskPrompt], collections.defaultdict]:
     """
     각 task에서 doc를 랜덤으로 추출한 후, fewshot example을 붙여 return 한다.
     return: [(task_name: str, fewshot_ctx), ...)], task_hierarchy

@@ -1,0 +1,704 @@
+WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.
+Selected Tasks: ['hellaswag']
+TaskPrompt(task=<abc.hellaswagConfigurableTask object at 0x7f66992dd9f0>,
+           task_name='hellaswag',
+           docs=[{'activity_label': 'Personal Care and Style',
+                  'choices': ['A high quality virgin coconut oil should be '
+                              'pure white when solid, and clear when liquid. A '
+                              '" refined " or unlabeled product has probably '
+                              'gone through an industrial process.',
+                              'Put 10 to 12 drops of the oil into your hair '
+                              'for every 1 quart (0.4 us gal) of hair you '
+                              'wash. A " virgin " label means the coconut oil '
+                              'has no added chemicals.',
+                              'It is usually labeled " natural, " " cultured, '
+                              '" or " unrefined. " again, however, each choice '
+                              'here lists whether or not the oil is made for '
+                              'hair specifically.',
+                              'A/10% pure coconut oil does not contain any '
+                              'added compounds. Any oil that contains a low '
+                              'percentage of its natural sugar content or '
+                              'copper sulfate, or that contains 10% coconut '
+                              'oil, is not pure coconut oil.'],
+                  'ctx': '[header] How to use coconut oil for your hair '
+                         '[title] Select virgin or refined coconut oil. [step] '
+                         "Any coconut oil will work, whether it's labeled for "
+                         'hair or cooking. There are many types, however, so '
+                         'use this guide to find a quality oil : [substeps] A '
+                         '* " virgin, " " extra-virgin, " or " unrefined " '
+                         'label means the coconut oil has no added chemicals.',
+                  'ctx_a': '[header] How to use coconut oil for your hair '
+                           '[title] Select virgin or refined coconut oil. '
+                           "[step] Any coconut oil will work, whether it's "
+                           'labeled for hair or cooking. There are many types, '
+                           'however, so use this guide to find a quality oil : '
+                           '[substeps] A * " virgin, " " extra-virgin, " or " '
+                           'unrefined " label means the coconut oil has no '
+                           'added chemicals.',
+                  'ctx_b': '',
+                  'endings': ['A high quality virgin coconut oil should be '
+                              'pure white when solid, and clear when liquid. A '
+                              '" refined " or unlabeled product has probably '
+                              'gone through an industrial process.',
+                              'Put 10 to 12 drops of the oil into your hair '
+                              'for every 1 quart (0.4 us gal) of hair you '
+                              'wash. A " virgin " label means the coconut oil '
+                              'has no added chemicals.',
+                              'It is usually labeled " natural, " " cultured, '
+                              '" or " unrefined. " again, however, each choice '
+                              'here lists whether or not the oil is made for '
+                              'hair specifically.',
+                              'A/10% pure coconut oil does not contain any '
+                              'added compounds. Any oil that contains a low '
+                              'percentage of its natural sugar content or '
+                              'copper sulfate, or that contains 10% coconut '
+                              'oil, is not pure coconut oil.'],
+                  'gold': 0,
+                  'ind': 13202,
+                  'label': '0',
+                  'query': 'Personal Care and Style: How to use coconut oil '
+                           'for your hair. Select virgin or refined coconut '
+                           "oil. Any coconut oil will work, whether it's "
+                           'labeled for hair or cooking. There are many types, '
+                           'however, so use this guide to find a quality oil : '
+                           'A * " virgin, " " extra-virgin, " or " unrefined " '
+                           'label means the coconut oil has no added '
+                           'chemicals.',
+                  'source_id': 'wikihow~21860',
+                  'split': 'val',
+                  'split_type': 'zeroshot'},
+                 {'activity_label': 'Health',
+                  'choices': [' Create a relaxing bedtime routine for your '
+                              'child. As mentioned in the previous step, teeth '
+                              'grinding can be a sign that your child is '
+                              'stressed.',
+                              " Listen to your child's dialogue. If your child "
+                              'is grinding his/her teeth, he/she may be '
+                              'chewing or trying to chew on a piece of food.',
+                              ' Identify problematic behaviors that could '
+                              'cause bruxism. Look for obvious behaviors and '
+                              'identify them immediately.',
+                              'How you deal with tension in this way may help '
+                              'improve the symptoms of bruxism, such as '
+                              'reduced incidences of biting. To prevent your '
+                              'child from grinding his/her teeth, replace the '
+                              'grind with relaxation techniques such as '
+                              'grounding exercises or deep breathing.'],
+                  'ctx': '[header] How to stop your child from grinding his or '
+                         'her teeth [title] Understand that stress can cause '
+                         'bruxism. [step] Teeth grinding can be a sign that '
+                         'your child is stressed or anxious about something. '
+                         'Helping your child to relax may be the key to '
+                         'getting your child to stop grinding his/her teeth.',
+                  'ctx_a': '[header] How to stop your child from grinding his '
+                           'or her teeth [title] Understand that stress can '
+                           'cause bruxism. [step] Teeth grinding can be a sign '
+                           'that your child is stressed or anxious about '
+                           'something. Helping your child to relax may be the '
+                           'key to getting your child to stop grinding his/her '
+                           'teeth.',
+                  'ctx_b': '',
+                  'endings': ['[title] Create a relaxing bedtime routine for '
+                              'your child. [step] As mentioned in the previous '
+                              'step, teeth grinding can be a sign that your '
+                              'child is stressed.',
+                              "[title] Listen to your child's dialogue. [step] "
+                              'If your child is grinding his/her teeth, he/she '
+                              'may be chewing or trying to chew on a piece of '
+                              'food.',
+                              '[title] Identify problematic behaviors that '
+                              'could cause bruxism. [step] Look for obvious '
+                              'behaviors and identify them immediately.',
+                              'How you deal with tension in this way may help '
+                              'improve the symptoms of bruxism, such as '
+                              'reduced incidences of biting. [substeps] To '
+                              'prevent your child from grinding his/her teeth, '
+                              'replace the grind with relaxation techniques '
+                              'such as grounding exercises or deep breathing.'],
+                  'gold': 0,
+                  'ind': 2879,
+                  'label': '0',
+                  'query': 'Health: How to stop your child from grinding his '
+                           'or her teeth. Understand that stress can cause '
+                           'bruxism. Teeth grinding can be a sign that your '
+                           'child is stressed or anxious about something. '
+                           'Helping your child to relax may be the key to '
+                           'getting your child to stop grinding his/her teeth.',
+                  'source_id': 'wikihow~4745',
+                  'split': 'val',
+                  'split_type': 'indomain'},
+                 {'activity_label': 'Personal Care and Style',
+                  'choices': [' Pull the spur ledge up so it stays in place. '
+                              'Put a rubber band over the spur ledge in order '
+                              'to hold it in place on the boot heel.',
+                              ' Purchase a separate spur ledge for your boots. '
+                              "Spur ledges were rubber and rigid, so you'll "
+                              'need to purchase them separately to put on '
+                              'boots while riding.',
+                              'It is listed in the section below. Locate the '
+                              'toe bar on the front of your boot. The toe bar '
+                              'is the flat bar at the point where your foot '
+                              'meets your calf.',
+                              'All cowboy style boots should have a spur '
+                              'ledge. If you are not sure about your boots, '
+                              'take them with you when you go to purchase your '
+                              'spurs.'],
+                  'ctx': '[header] How to put spurs on boots [title] Locate '
+                         'the spur ledge on the back of your cowboy boot. '
+                         '[step] The spur ledge is the protruding part of the '
+                         'boot heel that creates a small shelf where the spur '
+                         'heel band will rest. [substeps] The spur ledge is a '
+                         'very slight ledge, just large enough so that the '
+                         "heel band doesn't slip down the boot.",
+                  'ctx_a': '[header] How to put spurs on boots [title] Locate '
+                           'the spur ledge on the back of your cowboy boot. '
+                           '[step] The spur ledge is the protruding part of '
+                           'the boot heel that creates a small shelf where the '
+                           'spur heel band will rest. [substeps] The spur '
+                           'ledge is a very slight ledge, just large enough so '
+                           "that the heel band doesn't slip down the boot.",
+                  'ctx_b': '',
+                  'endings': ['[title] Pull the spur ledge up so it stays in '
+                              'place. [step] Put a rubber band over the spur '
+                              'ledge in order to hold it in place on the boot '
+                              'heel.',
+                              '[title] Purchase a separate spur ledge for your '
+                              'boots. [step] Spur ledges were rubber and '
+                              "rigid, so you'll need to purchase them "
+                              'separately to put on boots while riding.',
+                              'It is listed in the section below [title] '
+                              'Locate the toe bar on the front of your boot. '
+                              '[step] The toe bar is the flat bar at the point '
+                              'where your foot meets your calf.',
+                              'All cowboy style boots should have a spur '
+                              'ledge. If you are not sure about your boots, '
+                              'take them with you when you go to purchase your '
+                              'spurs.'],
+                  'gold': 3,
+                  'ind': 29708,
+                  'label': '3',
+                  'query': 'Personal Care and Style: How to put spurs on '
+                           'boots. Locate the spur ledge on the back of your '
+                           'cowboy boot. The spur ledge is the protruding part '
+                           'of the boot heel that creates a small shelf where '
+                           'the spur heel band will rest. The spur ledge is a '
+                           'very slight ledge, just large enough so that the '
+                           "heel band doesn't slip down the boot.",
+                  'source_id': 'wikihow~48984',
+                  'split': 'val',
+                  'split_type': 'zeroshot'},
+                 {'activity_label': 'Personal Care and Style',
+                  'choices': ['Clean off dirt and whiteflesh well and clear, '
+                              "oval skin. If you don't have sweet potatoes, "
+                              'you can substitute the canning jar that came '
+                              'with your sweet potatoes when you buy them as a '
+                              'substitute.',
+                              'Pat your potato dry with a paper towel. This is '
+                              'especially important if you enjoy eating the '
+                              'sweet potato skin.',
+                              ' Cut the potatoes into pieces and add them to a '
+                              'large bowl. Wash them under the water in your '
+                              'saucepan or pot.',
+                              'This will remove unwanted bacteria and dirt '
+                              'from the potato flesh and make it easier to '
+                              'cook. For an easy cleaning, wash your sweet '
+                              'potatoes under cool running water.'],
+                  'ctx': '[header] How to cook a sweet potato in the microwave '
+                         '[title] Wash your sweet potatoes. [step] Clean your '
+                         'sweet potatoes under cool running water and scrub '
+                         'with a produce scrubbing brush. Make sure to clean '
+                         'your potatoes well.',
+                  'ctx_a': '[header] How to cook a sweet potato in the '
+                           'microwave [title] Wash your sweet potatoes. [step] '
+                           'Clean your sweet potatoes under cool running water '
+                           'and scrub with a produce scrubbing brush. Make '
+                           'sure to clean your potatoes well.',
+                  'ctx_b': '',
+                  'endings': ['Clean off dirt and whiteflesh well and clear, '
+                              "oval skin. [substeps] If you don't have sweet "
+                              'potatoes, you can substitute the canning jar '
+                              'that came with your sweet potatoes when you buy '
+                              'them as a substitute.',
+                              'Pat your potato dry with a paper towel. '
+                              '[substeps] This is especially important if you '
+                              'enjoy eating the sweet potato skin.',
+                              '[title] Cut the potatoes into pieces and add '
+                              'them to a large bowl. [step] Wash them under '
+                              'the water in your saucepan or pot.',
+                              'This will remove unwanted bacteria and dirt '
+                              'from the potato flesh and make it easier to '
+                              'cook. [substeps] For an easy cleaning, wash '
+                              'your sweet potatoes under cool running water.'],
+                  'gold': 1,
+                  'ind': 9519,
+                  'label': '1',
+                  'query': 'Personal Care and Style: How to cook a sweet '
+                           'potato in the microwave. Wash your sweet potatoes. '
+                           'Clean your sweet potatoes under cool running water '
+                           'and scrub with a produce scrubbing brush. Make '
+                           'sure to clean your potatoes well.',
+                  'source_id': 'wikihow~15710',
+                  'split': 'val',
+                  'split_type': 'zeroshot'},
+                 {'activity_label': 'Finance and Business',
+                  'choices': [' You may think that fruit can help eat '
+                              'healthier, but fruit can actually contribute to '
+                              'weight gain for many reasons. Getting large '
+                              'fruit will help you take a step back and '
+                              'balance your diet and your calorie intake.',
+                              ' Eliminate the expenses that add no value to '
+                              'your life, such as late fees, unnecessary or '
+                              'duplicate purchases, excess interest on debt.. '
+                              'Spend your money on the things and experiences '
+                              'that truly enhance your quality of life.',
+                              ' Since the trees are always chock full of '
+                              'fruit, when you first start shopping online, '
+                              "you'll find plenty of low-hanging fruit. Use an "
+                              'online food auction tool such as retailmenot '
+                              'and purchase your fruit.',
+                              " Even if you don't plan to cook it for the next "
+                              "six months, you'll need to add some weight-loss "
+                              'to the steer. When done properly, berries and '
+                              'nuts should be left whole and fresh, in small '
+                              'quantities to keep you consistently in good '
+                              'shape.'],
+                  'ctx': '[header] How to shrink your financial footprint '
+                         '[title] Look at this project in the same way as a '
+                         'weight loss diet. [step] Most people know that the '
+                         'best way to lose weight is to burn more calories '
+                         'than you take in; financial solvency comes when you '
+                         'spend less than you bring in. [title] Start with the '
+                         'low-hanging fruit.',
+                  'ctx_a': '[header] How to shrink your financial footprint '
+                           '[title] Look at this project in the same way as a '
+                           'weight loss diet. [step] Most people know that the '
+                           'best way to lose weight is to burn more calories '
+                           'than you take in; financial solvency comes when '
+                           'you spend less than you bring in. [title] Start '
+                           'with the low-hanging fruit.',
+                  'ctx_b': '',
+                  'endings': ['[step] You may think that fruit can help eat '
+                              'healthier, but fruit can actually contribute to '
+                              'weight gain for many reasons. Getting large '
+                              'fruit will help you take a step back and '
+                              'balance your diet and your calorie intake.',
+                              '[step] Eliminate the expenses that add no value '
+                              'to your life, such as late fees, unnecessary or '
+                              'duplicate purchases, excess interest on debt. '
+                              '[title] Spend your money on the things and '
+                              'experiences that truly enhance your quality of '
+                              'life.',
+                              '[step] Since the trees are always chock full of '
+                              'fruit, when you first start shopping online, '
+                              "you'll find plenty of low-hanging fruit. Use an "
+                              'online food auction tool such as retailmenot '
+                              'and purchase your fruit.',
+                              "[step] Even if you don't plan to cook it for "
+                              "the next six months, you'll need to add some "
+                              'weight-loss to the steer. When done properly, '
+                              'berries and nuts should be left whole and '
+                              'fresh, in small quantities to keep you '
+                              'consistently in good shape.'],
+                  'gold': 1,
+                  'ind': 10040,
+                  'label': '1',
+                  'query': 'Finance and Business: How to shrink your financial '
+                           'footprint. Look at this project in the same way as '
+                           'a weight loss diet. Most people know that the best '
+                           'way to lose weight is to burn more calories than '
+                           'you take in; financial solvency comes when you '
+                           'spend less than you bring in.. Start with the '
+                           'low-hanging fruit.',
+                  'source_id': 'wikihow~16544',
+                  'split': 'val',
+                  'split_type': 'indomain'},
+                 {'activity_label': 'Hurling',
+                  'choices': ['also demonstrates how to balance the ball on '
+                              'the stick as the player runs.',
+                              'is then shown in slow motion again as they '
+                              'play.',
+                              'continues zooming right into the goalie playing '
+                              'with the other team members.',
+                              'is displaying two videos then slows to show '
+                              'both videos in slow motion.'],
+                  'ctx': 'They are part of a team that is playing in the large '
+                         'stadium with several spectators. The video is '
+                         'demonstrating how to catch the ball and scoop it up '
+                         'with the stick. it',
+                  'ctx_a': 'They are part of a team that is playing in the '
+                           'large stadium with several spectators. The video '
+                           'is demonstrating how to catch the ball and scoop '
+                           'it up with the stick.',
+                  'ctx_b': 'it',
+                  'endings': ['also demonstrates how to balance the ball on '
+                              'the stick as the player runs.',
+                              'is then shown in slow motion again as they '
+                              'play.',
+                              'continues zooming right into the goalie playing '
+                              'with the other team members.',
+                              'is displaying two videos then slows to show '
+                              'both videos in slow motion.'],
+                  'gold': 0,
+                  'ind': 3630,
+                  'label': '0',
+                  'query': 'Hurling: They are part of a team that is playing '
+                           'in the large stadium with several spectators. The '
+                           'video is demonstrating how to catch the ball and '
+                           'scoop it up with the stick. It',
+                  'source_id': 'activitynet~v_fgEMvRrOCRI',
+                  'split': 'val',
+                  'split_type': 'indomain'},
+                 {'activity_label': 'Home and Garden',
+                  'choices': [' To see a list of common exit codes, review the '
+                              'section on " calling from specific countries. " '
+                              'for example, the exit code for the united '
+                              'states is " 011.',
+                              ' For example, a phone call to switzerland from '
+                              '0800 would be 0800.. Dial the country code from '
+                              '1 of the countries listed.',
+                              'You can generally find this somewhere along the '
+                              'dial pad on all the cell phones. The exit code '
+                              'on the us phone will be 93.',
+                              'Cell phone service stations can also be easily '
+                              'forgotten. Dial the exit code for most '
+                              'countries within switzerland.'],
+                  'ctx': '[header] How to call switzerland [title] Dial your '
+                         "country's exit code. [step] An exit code is a set or "
+                         'series of digits that allows your phone call to " '
+                         'exit " the country. In other words, the numbers let '
+                         'the telephone carrier known that the rest of the '
+                         'phone number should be directed outside of the '
+                         'country.',
+                  'ctx_a': '[header] How to call switzerland [title] Dial your '
+                           "country's exit code. [step] An exit code is a set "
+                           'or series of digits that allows your phone call to '
+                           '" exit " the country. In other words, the numbers '
+                           'let the telephone carrier known that the rest of '
+                           'the phone number should be directed outside of the '
+                           'country.',
+                  'ctx_b': '',
+                  'endings': ['[substeps] To see a list of common exit codes, '
+                              'review the section on " calling from specific '
+                              'countries. " for example, the exit code for the '
+                              'united states is " 011.',
+                              '[substeps] For example, a phone call to '
+                              'switzerland from 0800 would be 0800. [title] '
+                              'Dial the country code from 1 of the countries '
+                              'listed.',
+                              'You can generally find this somewhere along the '
+                              'dial pad on all the cell phones. [substeps] The '
+                              'exit code on the us phone will be 93.',
+                              'Cell phone service stations can also be easily '
+                              'forgotten. [substeps] Dial the exit code for '
+                              'most countries within switzerland.'],
+                  'gold': 0,
+                  'ind': 993,
+                  'label': '0',
+                  'query': 'Home and Garden: How to call switzerland. Dial '
+                           "your country's exit code. An exit code is a set or "
+                           'series of digits that allows your phone call to " '
+                           'exit " the country. In other words, the numbers '
+                           'let the telephone carrier known that the rest of '
+                           'the phone number should be directed outside of the '
+                           'country.',
+                  'source_id': 'wikihow~1630',
+                  'split': 'val',
+                  'split_type': 'indomain'},
+                 {'activity_label': 'Family Life',
+                  'choices': ['This sort of crying is normally just a warning '
+                              'sign of hunger. A baby will also cry slightly '
+                              'more if it is feeling hungry.',
+                              'This can be very upsetting to watch, so get a '
+                              'parent to come and help the baby. Only a parent '
+                              "can judge their child's age.",
+                              'This will usually end after about three '
+                              "minutes.. Pay attention to the baby's closed "
+                              'eyes.',
+                              "It's persistent, piercing, and unmistakable. If "
+                              'you hear this cry, go to the child '
+                              'immediately.'],
+                  'ctx': '[header] How to know why a child (under 2) is crying '
+                         '[title] Listen for a loud cry, almost a wail. [step] '
+                         'This usually means " i\'m in pain " or " i\'m sick. '
+                         '" the baby will pause, then scream an entire '
+                         'lungful, and repeat the process.',
+                  'ctx_a': '[header] How to know why a child (under 2) is '
+                           'crying [title] Listen for a loud cry, almost a '
+                           'wail. [step] This usually means " i\'m in pain " '
+                           'or " i\'m sick. " the baby will pause, then scream '
+                           'an entire lungful, and repeat the process.',
+                  'ctx_b': '',
+                  'endings': ['This sort of crying is normally just a warning '
+                              'sign of hunger. A baby will also cry slightly '
+                              'more if it is feeling hungry.',
+                              'This can be very upsetting to watch, so get a '
+                              'parent to come and help the baby. [substeps] '
+                              "Only a parent can judge their child's age.",
+                              'This will usually end after about three '
+                              "minutes. [title] Pay attention to the baby's "
+                              'closed eyes.',
+                              "It's persistent, piercing, and unmistakable. If "
+                              'you hear this cry, go to the child '
+                              'immediately.'],
+                  'gold': 3,
+                  'ind': 11731,
+                  'label': '3',
+                  'query': 'Family Life: How to know why a child (under 2) is '
+                           'crying. Listen for a loud cry, almost a wail. This '
+                           'usually means " i\'m in pain " or " i\'m sick. " '
+                           'the baby will pause, then scream an entire '
+                           'lungful, and repeat the process.',
+                  'source_id': 'wikihow~19357',
+                  'split': 'val',
+                  'split_type': 'zeroshot'},
+                 {'activity_label': 'Computers and Electronics',
+                  'choices': [' Pull out the ipod and put the volume up play '
+                              'on.. Play left and right with the ipod.',
+                              ' Leave the bag on your lap in case your ipod is '
+                              'lost or stolen.. Bring your digital phone, ipod '
+                              'touch or your mp3 console separately.',
+                              " Turn the volume down low, so the teacher won't "
+                              'hear it.. Put you hand/wrist up to your ear and '
+                              'listen.',
+                              ' You can also slide your ipod into a sweatshirt '
+                              'at school if it has to be in your jacket '
+                              'pocket.. Leave the class early on because the '
+                              'teacher will most likely give you a warning and '
+                              'you will probably be late.'],
+                  'ctx': '[header] How to listen to an ipod or mp3 player at '
+                         'school [title] Wear a loose-fitting jacket. [title] '
+                         'Stick the earphones inside the jacket and down the '
+                         'sleeve, but keep them just inside the cuff. [title] '
+                         'Put the ipod in your pants pocket.',
+                  'ctx_a': '[header] How to listen to an ipod or mp3 player at '
+                           'school [title] Wear a loose-fitting jacket. '
+                           '[title] Stick the earphones inside the jacket and '
+                           'down the sleeve, but keep them just inside the '
+                           'cuff. [title] Put the ipod in your pants pocket.',
+                  'ctx_b': '',
+                  'endings': ['[title] Pull out the ipod and put the volume up '
+                              'play on. [title] Play left and right with the '
+                              'ipod.',
+                              '[title] Leave the bag on your lap in case your '
+                              'ipod is lost or stolen. [title] Bring your '
+                              'digital phone, ipod touch or your mp3 console '
+                              'separately.',
+                              '[title] Turn the volume down low, so the '
+                              "teacher won't hear it. [title] Put you "
+                              'hand/wrist up to your ear and listen.',
+                              '[step] You can also slide your ipod into a '
+                              'sweatshirt at school if it has to be in your '
+                              'jacket pocket. [title] Leave the class early on '
+                              'because the teacher will most likely give you a '
+                              'warning and you will probably be late.'],
+                  'gold': 2,
+                  'ind': 9916,
+                  'label': '2',
+                  'query': 'Computers and Electronics: How to listen to an '
+                           'ipod or mp3 player at school. Wear a loose-fitting '
+                           'jacket.. Stick the earphones inside the jacket and '
+                           'down the sleeve, but keep them just inside the '
+                           'cuff.. Put the ipod in your pants pocket.',
+                  'source_id': 'wikihow~16335',
+                  'split': 'val',
+                  'split_type': 'indomain'},
+                 {'activity_label': 'Making a cake',
+                  'choices': ['girl holds out food to the camera while several '
+                              'others go outside.',
+                              'woman begins spreading jam in the pan and '
+                              'speaking to the girls.',
+                              'girl pours pasta across a plate to serve the '
+                              'girls and plays with the girls hair.',
+                              'mixes ingredients into a bowl with another '
+                              "girl's help and the girls lick the spoon used "
+                              'afterwards.'],
+                  'ctx': 'Three girls are seen standing behind a counter '
+                         'speaking to the camera with one spreading butter '
+                         'around a pan. another',
+                  'ctx_a': 'Three girls are seen standing behind a counter '
+                           'speaking to the camera with one spreading butter '
+                           'around a pan.',
+                  'ctx_b': 'another',
+                  'endings': ['girl holds out food to the camera while several '
+                              'others go outside.',
+                              'woman begins spreading jam in the pan and '
+                              'speaking to the girls.',
+                              'girl pours pasta across a plate to serve the '
+                              'girls and plays with the girls hair.',
+                              'mixes ingredients into a bowl with another '
+                              "girl's help and the girls lick the spoon used "
+                              'afterwards.'],
+                  'gold': 3,
+                  'ind': 12215,
+                  'label': '3',
+                  'query': 'Making a cake: Three girls are seen standing '
+                           'behind a counter speaking to the camera with one '
+                           'spreading butter around a pan. Another',
+                  'source_id': 'activitynet~v_Q9UovyMsTLc',
+                  'split': 'val',
+                  'split_type': 'indomain'}],
+           fewshot_contexts=['Pets and Animals: How to care for a flock of '
+                             'ducks. Choose your ducks. There are about 5 '
+                             'different breeds of ducks that would be suitable '
+                             'for you to keep. The saxony is a large breed '
+                             'that can lay about 150 eggs per year. They are '
+                             'practical, but the females are noisy. The indian '
+                             'runner is pretty hardy and they stay in an '
+                             'unusual upright position.\n'
+                             '\n'
+                             'Personal Care and Style: How to use coconut oil '
+                             'for your hair. Select virgin or refined coconut '
+                             "oil. Any coconut oil will work, whether it's "
+                             'labeled for hair or cooking. There are many '
+                             'types, however, so use this guide to find a '
+                             'quality oil : A * " virgin, " " extra-virgin, " '
+                             'or " unrefined " label means the coconut oil has '
+                             'no added chemicals.',
+                             'Pets and Animals: How to end dog separation '
+                             'anxiety with desensitization. Understand '
+                             'separation anxiety. If your dog suffers from '
+                             'separation anxiety, it means that it gets '
+                             'extremely anxious whenever you leave the house. '
+                             'This may be because they are afraid of being '
+                             'alone, or because they are unsure when you will '
+                             'return to provide and care for them. Whatever '
+                             'the reason, many dogs become anxious when their '
+                             'owners leave. This could mean that your dog '
+                             "feels afraid and nervous whenever you aren't "
+                             'around.\n'
+                             '\n'
+                             'Health: How to stop your child from grinding his '
+                             'or her teeth. Understand that stress can cause '
+                             'bruxism. Teeth grinding can be a sign that your '
+                             'child is stressed or anxious about something. '
+                             'Helping your child to relax may be the key to '
+                             'getting your child to stop grinding his/her '
+                             'teeth.',
+                             'Home and Garden: How to hire a reliable '
+                             'locksmith. Make sure your locksmith is nearby. '
+                             'One of the first things to address is if the '
+                             'locksmith is localized. A far located locksmith '
+                             'may add some extra charges for the traveling '
+                             'also. Localized locksmiths generally have an '
+                             'office close by where you can really visit when '
+                             'future secure or security needs arise. This '
+                             'allows you to establish a connection with your '
+                             'local locksmith and construct trust.\n'
+                             '\n'
+                             'Personal Care and Style: How to put spurs on '
+                             'boots. Locate the spur ledge on the back of your '
+                             'cowboy boot. The spur ledge is the protruding '
+                             'part of the boot heel that creates a small shelf '
+                             'where the spur heel band will rest. The spur '
+                             'ledge is a very slight ledge, just large enough '
+                             "so that the heel band doesn't slip down the "
+                             'boot.',
+                             'Health: How to lose hip fat. Keep a food journal '
+                             'for a week. Continue eating in a normal manner. '
+                             'You can use this journal as a baseline for '
+                             'changing your diet.  A food journal can let you '
+                             'see into your diet and give you clues about '
+                             'things you can change to lose weight. Take note '
+                             'of portion sizes, snacking, liquid calories or '
+                             'higher fat foods you typically eat.\n'
+                             '\n'
+                             'Personal Care and Style: How to cook a sweet '
+                             'potato in the microwave. Wash your sweet '
+                             'potatoes. Clean your sweet potatoes under cool '
+                             'running water and scrub with a produce scrubbing '
+                             'brush. Make sure to clean your potatoes well.',
+                             'Education and Communications: How to get an '
+                             'automatic and correct flash sight picture and an '
+                             'automatic and correct sight picture with p&s. '
+                             'Learn to aim. Aiming involves sight alignment '
+                             'and sight placement.. Learn what sight alignment '
+                             'is.  Sight alignment is the centering of the '
+                             'front blade in the rear sight notch, and the '
+                             'raising or lowering the top of the front sight '
+                             'so it is level with the top of the rear sight.. '
+                             'Sight placement is the positioning of the '
+                             "weapon's sights in relation to the target.\n"
+                             '\n'
+                             'Finance and Business: How to shrink your '
+                             'financial footprint. Look at this project in the '
+                             'same way as a weight loss diet. Most people know '
+                             'that the best way to lose weight is to burn more '
+                             'calories than you take in; financial solvency '
+                             'comes when you spend less than you bring in.. '
+                             'Start with the low-hanging fruit.',
+                             'Health: How to apply a poultice. Grind roots, '
+                             'seeds and other hard herbs in a coffee grinder '
+                             'or mortar and pestle. You may use fruits and '
+                             'vegetables in poultices, too. These are usually '
+                             'grated instead of ground. Already-fine herbs and '
+                             "powders don't need to be ground.. Mix the ground "
+                             'or dried herb with a bit of oil or water until '
+                             'it forms a moist paste.\n'
+                             '\n'
+                             'Hurling: They are part of a team that is playing '
+                             'in the large stadium with several spectators. '
+                             'The video is demonstrating how to catch the ball '
+                             'and scoop it up with the stick. It',
+                             'Health: How to use a bed fan to help stop night '
+                             'sweats. Learn the basics of cooling a room. Heat '
+                             'rises and, as a result, the coolest air hovers '
+                             'around the floor. Pushing up this cooler air can '
+                             'cool you down and minimize or prevent night '
+                             'sweats.  A room in which air cannot circulate '
+                             'properly can also get hot. A small space '
+                             'obstructed with large objects may not be as a '
+                             'cool as a larger space or one that contains less '
+                             'clutter.\n'
+                             '\n'
+                             'Home and Garden: How to call switzerland. Dial '
+                             "your country's exit code. An exit code is a set "
+                             'or series of digits that allows your phone call '
+                             'to " exit " the country. In other words, the '
+                             'numbers let the telephone carrier known that the '
+                             'rest of the phone number should be directed '
+                             'outside of the country.',
+                             'Health: How to control environmental pollution '
+                             'risks in a hospital. Accurately record your '
+                             'inventory. Keep careful track of the inventory '
+                             'of materials you have on hand in the hospital '
+                             'for future use. Avoid overstocking items that '
+                             'have limited lifespans, as these will need to be '
+                             'disposed of.  Perform quarterly inventory checks '
+                             'to look for items that are close to the end of '
+                             'their lifespans. A computerized inventory system '
+                             'will make this task much easier.\n'
+                             '\n'
+                             'Family Life: How to know why a child (under 2) '
+                             'is crying. Listen for a loud cry, almost a wail. '
+                             'This usually means " i\'m in pain " or " i\'m '
+                             'sick. " the baby will pause, then scream an '
+                             'entire lungful, and repeat the process.',
+                             "Grooming dog: There's a lady dog groomer wearing "
+                             'a black coat, grooming a golden retriever. '
+                             "There's another lady in a blue shirt standing "
+                             'with a teenage girl, also grooming a golden '
+                             'retriever. They are both grooming dogs in a '
+                             'large indoor arena.\n'
+                             '\n'
+                             'Computers and Electronics: How to listen to an '
+                             'ipod or mp3 player at school. Wear a '
+                             'loose-fitting jacket.. Stick the earphones '
+                             'inside the jacket and down the sleeve, but keep '
+                             'them just inside the cuff.. Put the ipod in your '
+                             'pants pocket.',
+                             'Home and Garden: How to make a small home look '
+                             'bigger using the right colors. Make the most of '
+                             'whites. The best color for opening up a room is '
+                             'bright white, so try painting this on all the '
+                             'walls. Neutral colors such as this give the '
+                             'impression that the walls are further away than '
+                             'they actually are.  If you want the room to be '
+                             'slightly warmer, try adding a few tints of your '
+                             "favorite color. If so much white really isn't "
+                             'your thing, there are similar alternatives such '
+                             'as beige or light gray, which also work well.\n'
+                             '\n'
+                             'Making a cake: Three girls are seen standing '
+                             'behind a counter speaking to the camera with one '
+                             'spreading butter around a pan. Another'])
+===============================

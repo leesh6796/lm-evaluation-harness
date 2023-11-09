@@ -27,6 +27,7 @@ def parse_args():
     )
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
+    parser.add_argument("--delta_layer_id", type=int, default=0)
     parser.add_argument("--batch_size", type=str, default=None)
     parser.add_argument(
         "--max_batch_size",
@@ -76,12 +77,22 @@ def main():
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
 
+    ctrl = KVControl()
+    seed = 1003
     import random
 
-    random.seed(1003)
+    ctrl.set_random_seed(seed)
+    random.seed(ctrl.random_seed)
     task_prompts, task_hierarchy = custom_eval.create_inputs(
         task_names, args.num_fewshot, args.limit
     )
+
+    # NOTE: prompt seed test
+    # for task_prompt in task_prompts:
+    #     pprint(task_prompt)
+    #     print("===============================")
+
+    # exit(-1)
 
     lm: HFLMCustom = custom_eval.get_model(
         model=args.model,
@@ -100,6 +111,7 @@ def main():
     lm.assign_pipeline(generator)
 
     ctrl = KVControl()
+    ctrl.kv.delta_layer_id = args.delta_layer_id
     ctrl.kv.set_start_extraction()
     ctrl.kv.mode = "warmup"
 

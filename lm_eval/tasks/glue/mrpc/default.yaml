@@ -10,4 +10,4 @@ doc_to_target: label
 doc_to_choice: ["no", "yes"]
 metric_list:
   - metric: acc
-  - metric: f1
+  # - metric: f1
