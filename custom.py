@@ -28,6 +28,7 @@ def parse_args():
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--delta_layer_id", type=int, default=0)
+    parser.add_argument("--shift", type=int, default=0)
     parser.add_argument("--batch_size", type=str, default=None)
     parser.add_argument(
         "--max_batch_size",
@@ -112,19 +113,21 @@ def main():
 
     ctrl = KVControl()
     ctrl.kv.delta_layer_id = args.delta_layer_id
+    ctrl.kv.shift = args.shift
     ctrl.kv.set_start_extraction()
     ctrl.kv.mode = "warmup"
+    ctrl.kv.phase = "full"
 
-    custom_eval.custom_evaluate(
-        model=lm,
-        model_args=args.model_args,
-        task_prompts=task_prompts,
-        task_hierarchy=task_hierarchy,
-    )
+    # custom_eval.custom_evaluate(
+    #     model=lm,
+    #     model_args=args.model_args,
+    #     task_prompts=task_prompts,
+    #     task_hierarchy=task_hierarchy,
+    # )
 
-    ctrl.kv.encode_to_delta(use_tqdm=True)
+    # ctrl.kv.encode_to_delta(use_tqdm=True)
 
-    ctrl.kv.mode = "eval"
+    # ctrl.kv.mode = "eval"
     tables = []
 
     for i in range(2):
@@ -151,8 +154,11 @@ def main():
                 print(table)
 
         if ctrl.phase == "full":
+            ctrl.mode = "eval"
             ctrl.phase = "delta"
+            ctrl.kv.encode_to_delta(use_tqdm=True)
 
+    print("==== result ====")
     print(tables[0])
     print(tables[1])
 

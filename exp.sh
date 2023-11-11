@@ -1,5 +1,5 @@
 #!/bin/bash
-delta_layer_id=(0 4 8 12 16 20 24 28 31)
+delta_layer_id=(0 3 7 11 15 19 23 27 31)
 for index in ${!delta_layer_id[*]}
 do
     ./custom.sh copa 20 ${delta_layer_id[index]} > copa_layer${delta_layer_id[index]}.txt
