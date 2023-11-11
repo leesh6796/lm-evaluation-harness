@@ -2,7 +2,7 @@ import os
 import fire
 
 
-def run(exp: bool, task, limit, delta_layer_id, shift, batch_size, num_fewshot):
+def run(exp: bool, task, limit, delta_layer_id, shift, batch_size, num_fewshot, format):
     cmd = "CUDA_VISIBLE_DEVICES=0,1,2,3 python custom.py "
     cmd += "--model hf-custom "
     cmd += "--model_args pretrained=/mnt/models/llama/llama-2-7b-chat-hf "
@@ -10,8 +10,16 @@ def run(exp: bool, task, limit, delta_layer_id, shift, batch_size, num_fewshot):
     cmd += f"--batch_size {batch_size} "
     cmd += f"--max_batch_size {batch_size} "
     cmd += f"--limit {limit} "
-    cmd += f"--delta_layer_id {delta_layer_id} "
-    cmd += f"--shift {shift} "
+
+    if delta_layer_id is not None:
+        cmd += f"--delta_layer_id {delta_layer_id} "
+
+    if shift is not None:
+        cmd += f"--shift {shift} "
+
+    if format is not None:
+        cmd += f"--format {format} "
+
     cmd += f"--num_fewshot {num_fewshot} "
     if exp:
         cmd += f"> ./results/{task}-layer-{delta_layer_id}-shift-{shift}.txt"
@@ -28,15 +36,14 @@ def main(
     shift=None,
     batch_size=16,
     num_fewshot=1,
+    format="E4M3",
 ):
-    if not exp and (
-        (task is None) or (limit is None) or (delta_layer_id is None) or (shift is None)
-    ):
-        print("Please specify task, limit, delta_layer_id and shift")
+    if not exp and ((task is None) or (limit is None)):
+        print("Please specify task, limit")
         return
 
     if not exp:
-        run(False, task, limit, delta_layer_id, shift, batch_size, num_fewshot)
+        run(False, task, limit, delta_layer_id, shift, batch_size, num_fewshot, format)
         return
 
     if exp and ((limit is None)):
@@ -49,7 +56,16 @@ def main(
     for task in tasks:
         for delta_layer_id in delta_layer_ids:
             for shift in shifts:
-                run(True, task, limit, delta_layer_id, shift, batch_size, num_fewshot)
+                run(
+                    True,
+                    task,
+                    limit,
+                    delta_layer_id,
+                    shift,
+                    batch_size,
+                    num_fewshot,
+                    format,
+                )
 
 
 if __name__ == "__main__":

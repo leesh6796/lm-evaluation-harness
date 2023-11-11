@@ -302,6 +302,8 @@ def make_table(result_dict, column: str = "results"):
     ]
 
     values = []
+    # >>> shlee (results를 parsable하게 만들기 위해 metric을 직접 출력)
+    results: list[tuple[str, float]] = []
 
     for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
@@ -315,6 +317,7 @@ def make_table(result_dict, column: str = "results"):
                 values.append([k, version, f, m, "%.4f" % v, "±", "%.4f" % se])
             else:
                 values.append([k, version, f, m, "%.4f" % v, "", ""])
+            results.append((m, v))
             k = ""
             version = ""
     md_writer.value_matrix = values
@@ -323,7 +326,7 @@ def make_table(result_dict, column: str = "results"):
     # todo: make latex table look good
     # print(latex_writer.dumps())
 
-    return md_writer.dumps()
+    return md_writer.dumps(), results
 
 
 def positional_deprecated(fn):
@@ -422,7 +425,6 @@ yaml.add_constructor("!function", import_function)
 
 
 def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
-
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
@@ -443,7 +445,6 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
         include_path.reverse()
         final_yaml_config = {}
         for path in include_path:
-
             # Assumes that path is a full path.
             # If not found, assume the included yaml
             # is in the same dir as the original yaml

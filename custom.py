@@ -9,7 +9,9 @@ from pprint import pprint
 import torch
 import gc
 import pickle
+import random
 
+from typing import Union, Any
 from transformers import KVControl
 from transformers import pipeline, TextGenerationPipeline
 
@@ -26,9 +28,6 @@ def parse_args():
         "--tasks", default=None, choices=utils.MultiChoice(tasks.ALL_TASKS)
     )
     parser.add_argument("--provide_description", action="store_true")
-    parser.add_argument("--num_fewshot", type=int, default=0)
-    parser.add_argument("--delta_layer_id", type=int, default=0)
-    parser.add_argument("--shift", type=int, default=0)
     parser.add_argument("--batch_size", type=str, default=None)
     parser.add_argument(
         "--max_batch_size",
@@ -53,6 +52,12 @@ def parse_args():
     parser.add_argument("--write_out", action="store_true", default=False)
     parser.add_argument("--output_base_path", type=str, default=None)
 
+    ### 실험 parameters
+    parser.add_argument("--num_fewshot", type=int, default=0)
+    parser.add_argument("--delta_layer_id", type=int, default=None)  # None은 x, -1은 전부
+    parser.add_argument("--shift", type=int, default=0)
+    parser.add_argument("--format", type=str, default="E4M3")
+
     return parser.parse_args()
 
 
@@ -61,6 +66,7 @@ def main():
 
     assert not args.provide_description  # not implemented
 
+    # ======== Argument verification ========
     if args.limit:
         print(
             "WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
@@ -78,9 +84,12 @@ def main():
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
 
+    ## ======== Experiment setting ========
+    # [x] num_fewshot argument화
+    # [x] delta_layer_id argument화 (all, None 넣어야 한다)
+    # [ ] delta_layer_id=None이면 delta 안구하고 KV만 fp8로 바꾸기
     ctrl = KVControl()
     seed = 1003
-    import random
 
     ctrl.set_random_seed(seed)
     random.seed(ctrl.random_seed)
@@ -114,6 +123,16 @@ def main():
     ctrl = KVControl()
     ctrl.kv.delta_layer_id = args.delta_layer_id
     ctrl.kv.shift = args.shift
+
+    E = int(args.format[1])
+    M = int(args.format[3:])
+    bias = 2 ** (E - 1) - 1
+    # min_x = float((2 ** (-M)) * (2 ** (1 - bias)))
+    ctrl.kv.min_x = float(2 ** (1 - bias - M))
+    # (1 + (1 - 2^(-M))) * 2 ** (2^E - 2 - bias)을 정리한 것.
+    ctrl.kv.max_x = float((2 - 2 ** (-M)) * (2 ** (bias)))
+    logging.info(f"[{args.format}] min_x: {ctrl.kv.min_x}, max_x: {ctrl.kv.max_x}")
+
     ctrl.kv.set_start_extraction()
     ctrl.kv.mode = "warmup"
     ctrl.kv.phase = "full"
@@ -129,6 +148,8 @@ def main():
 
     # ctrl.kv.mode = "eval"
     tables = []
+    metrics_results: list[list[tuple[str, Union[int, float]]]] = []
+    # ex: [[('accuracy', 0.5), ('f1', 0.5), ('loss', 0.5)], [('accuracy', 0.5), ('f1', 0.5), ('loss', 0.5)]]
 
     for i in range(2):
         ctrl.curr_rid = 0
@@ -137,7 +158,7 @@ def main():
         )
 
         if results_dict is not None:
-            dumped = json.dumps(results_dict, indent=2, default=lambda o: str(o))
+            # dumped = json.dumps(results_dict, indent=2, default=lambda o: str(o))
             # print(dumped)
 
             # batch_sizes = ",".join(map(str, results_dict["config"]["batch_sizes"]))
@@ -145,7 +166,10 @@ def main():
                 f"{args.model} ({args.model_args}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
                 f"batch_size: {args.batch_size}"
             )
-            table = evaluator.make_table(results_dict)
+            table, metrics = evaluator.make_table(results_dict)
+            # metrics는 (metric_name, value)의 list
+            # ex: [('accuracy', 0.5), ('f1', 0.5), ('loss', 0.5)]
+            metrics_results.append(metrics)
             print(table)
             tables.append(table)
             if "groups" in results_dict:
@@ -156,170 +180,25 @@ def main():
         if ctrl.phase == "full":
             ctrl.mode = "eval"
             ctrl.phase = "delta"
-            ctrl.kv.encode_to_delta(use_tqdm=True)
+            if ctrl.kv.delta_layer_id is not None:
+                # delta_layer_id=None이면 delta 안구하고 KV만 fp8로 바꾸기
+                ctrl.kv.encode_to_delta(use_tqdm=True)
 
     print("==== result ====")
     print(tables[0])
     print(tables[1])
+    print()
 
-    exit(-1)
+    # ex)
+    # ==== parsable ====
+    # acc:1.0,acc_norm:0.3
+    # acc:0.5,acc_norm:0.2
 
-    # custom_eval.custom_evaluate(
-    #     args.model, args.model_args, task_prompts, task_hierarchy
-    # )
-
-    # generator: TextGenerationPipeline = pipeline(
-    #     "text-generation",
-    #     model="/mnt/models/llama/llama-2-7b-chat-hf/",
-    #     device_map="auto",  # host의 모든 GPU에 자동으로 mapping 된다.
-    # )
-    # generator.tokenizer.pad_token_id = generator.model.config.eos_token_id
-
-    # 왠지 모르겠는데 model이 fp32로 저장돼있으므로, fp16으로 바꿔준다.
-    # for i, param in enumerate(generator.model.parameters()):
-    #     # Check if parameter dtype is  Float (float32)
-    #     if param.dtype == torch.float32:
-    #         param.data = param.data.to(torch.float16)
-    #         print(i, param.data.device)
-
-    # pprint(reqs)
-    # for i in range(len(reqs[1])):
-    #     print(reqs[1][i])
-    #     print("=====================================")
-
-    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-
-    # custom_eval.custom_evaluate(args.model, args.model_args, inputs)
-
-    MODEL_DIR = "/mnt/models/llama/llama-2-7b-chat-hf/"
-    model = LLM(MODEL_DIR)
-    tokenizer = model.llm_engine.tokenizer
-    repo = SingleRepo()
-
-    prompts = []
-    vllm_token_ids = []
-    for task_prompt in task_prompts:
-        for fewshot_ctx in task_prompt.fewshot_contexts:
-            print("tokenizer=====================================")
-            vllm_token_ids.append(tokenizer.encode(fewshot_ctx)[1:])
-            print(vllm_token_ids[-1])
-            print("=====================================")
-            prompts.append(fewshot_ctx)
-    repo.kv.vllm_input_ids = vllm_token_ids
-
-    # print("prompts length:")
-    # for i in range(len(prompts)):
-    #     print(f"len: {len(tokenizer.encode(prompts[i]))}")
-    # model.generate(prompts)
-
-    ## 1. warmup
-
-    ## 1-1. warmup with prompts
-    for prompt in prompts:
-        model.generate(prompt)
-
-    ## 1-2. quantize delta
-    repo.kv.encode_to_delta(use_tqdm=True)
-
-    ## 1-3. phase change from warmup to inference
-    repo.kv.set_start_inference()
-
-    KVControl().repo = repo
-    KVControl().kv = repo.kv
-
-    ## 2. inference
-    print("model 삭제 시작")
-    del model
-    torch.cuda.empty_cache()
-    gc.collect()
-    torch.cuda.empty_cache()
-
-    # import time
-
-    time.sleep(5)
-
-    print("pipeline 시작")
-
-    tables = []
-    for i in range(2):
-        results_dict = custom_eval.custom_evaluate(
-            args.model, args.model_args, task_prompts, task_hierarchy
-        )
-
-        if results_dict is not None:
-            # if args.log_samples:
-            #     samples = results_dict.pop("samples")
-            dumped = json.dumps(results_dict, indent=2, default=lambda o: str(o))
-            # if args.show_config:
-            print(dumped)
-
-            # batch_sizes = ",".join(map(str, results_dict["config"]["batch_sizes"]))
-
-            # if args.output_path:
-            #     output_path_file.open("w").write(dumped)
-
-            #     if args.log_samples:
-            #         for task_name, config in results_dict["configs"].items():
-            #             output_name = "{}_{}".format(
-            #                 re.sub("/|=", "__", args.model_args), task_name
-            #             )
-            #             filename = path.joinpath(f"{output_name}.jsonl")
-
-            #             with jsonlines.open(filename, "w") as f:
-            #                 f.write_all(samples[task_name])
-
-            print(
-                f"{args.model} ({args.model_args}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
-                f"batch_size: {args.batch_size}"
-            )
-            print(evaluator.make_table(results_dict))
-            if "groups" in results_dict:
-                table = evaluator.make_table(results_dict, "groups")
-                tables.append(table)
-                print(table)
-        if KVControl().phase == "full":
-            KVControl().phase = "delta"
-
-    pprint(tables)
-
-    exit(-1)
-
-    generator: TextGenerationPipeline = pipeline(
-        "text-generation",
-        model="/mnt/models/llama/llama-2-7b-chat-hf/",
-        device_map="auto"  # host의 모든 GPU에 자동으로 mapping 된다.
-        # device="0,1",  # (0부터 GPU, -1은 CPU). device_map을 주석 처리하고 사용한다.
-    )
-    generator.tokenizer.pad_token_id = generator.model.config.eos_token_id
-
-    # 왠지 모르겠는데 model이 fp32로 저장돼있으므로, fp16으로 바꿔준다.
-    for param in generator.model.parameters():
-        # Check if parameter dtype is  Float (float32)
-        if param.dtype == torch.float32:
-            param.data = param.data.to(torch.float16)
-
-    print("trained keys:", sorted(repo.kv.cache.keys()))
-
-    print("generator 시작")
-    num_prompts = 1
-    inputs = prompts[:num_prompts]
-    res = generator(inputs, batch_size=len(inputs))
-    print(res)
-
-    print(KVControl().input_ids)
-
-    v = KVControl().input_ids[0].tolist()
-    t = list(vllm_token_ids[0])[1:]  # 1번 <sos>는 뺀다.
-    print(v)
-    print(t)
-    print(len(v), len(t))
-
-    diff_idx = []
-    for i in range(len(v)):
-        if v[i] != t[i]:
-            diff_idx.append(i)
-    print(f"different index: {diff_idx}")
+    print("==== parsable ====")
+    for metrics_result in metrics_results:
+        # metric_result: (metric_name, value)
+        metric_result_pair = [f"{x[0]}:{x[1]}" for x in metrics_result]
+        print(",".join(metric_result_pair))
 
 
 if __name__ == "__main__":
