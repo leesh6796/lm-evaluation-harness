@@ -50,9 +50,10 @@ def main(
         print("Please specify limit")
         return
 
-    tasks = ["copa", "hellaswag"]
+    tasks = ["copa", "hellaswag", "openbookqa"]
     delta_layer_ids = [0, 3, 7, 11, 15, 19, 23, 27, 31, -1]
     shifts = [0, 2, 4, 6, 8]
+    formats = ["E4M3", "E5M2"]
     for task in tasks:
         for delta_layer_id in delta_layer_ids:
             for shift in shifts:

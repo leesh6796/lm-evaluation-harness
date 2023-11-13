@@ -4,11 +4,11 @@ path = pathlib.Path(".")
 files = list(path.glob("*.txt"))
 files.sort(key=lambda x: x.name)
 
-offset = {"hellaswag": 8, "copa": 7}
+ignore_fnames = ["result.txt", "result2.txt"]
 
 for file in files:
     fname = file.name
-    if fname == "result.txt" or fname == "result2.txt":
+    if fname in ignore_fnames:
         continue
     tokens = fname.split("-")
     task = tokens[0]
@@ -20,17 +20,6 @@ for file in files:
     else:
         layer = int(tokens[2])
         shift = int(tokens[4].split(".")[0])
-
-    """
-    ==== result ====
-    |Tasks|Version|Filter|Metric|Value|   |Stderr|
-    |-----|-------|------|------|----:|---|-----:|
-    |copa |{}     |none  |acc   |  0.8|±  |0.0918|
-
-    |Tasks|Version|Filter|Metric|Value|   |Stderr|
-    |-----|-------|------|------|----:|---|-----:|
-    |copa |{}     |none  |acc   | 0.85|±  |0.0819|
-    """
 
     try:
         with open(fname, "r") as f:

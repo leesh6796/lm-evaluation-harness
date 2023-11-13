@@ -1,0 +1,30 @@
+WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.
+Selected Tasks: ['openbookqa']
+hf-custom (pretrained=/mnt/models/llama/llama-2-7b-chat-hf), limit: 100.0, num_fewshot: 0, batch_size: 16
+|  Tasks   |Version|Filter| Metric |Value|   |Stderr|
+|----------|-------|------|--------|----:|---|-----:|
+|openbookqa|{}     |none  |acc     | 0.40|±  |0.0492|
+|          |       |none  |acc_norm| 0.41|±  |0.0494|
+
+[KVCache] Encoding to delta...
+hf-custom (pretrained=/mnt/models/llama/llama-2-7b-chat-hf), limit: 100.0, num_fewshot: 0, batch_size: 16
+|  Tasks   |Version|Filter| Metric |Value|   |Stderr|
+|----------|-------|------|--------|----:|---|-----:|
+|openbookqa|{}     |none  |acc     | 0.38|±  |0.0488|
+|          |       |none  |acc_norm| 0.41|±  |0.0494|
+
+==== result ====
+|  Tasks   |Version|Filter| Metric |Value|   |Stderr|
+|----------|-------|------|--------|----:|---|-----:|
+|openbookqa|{}     |none  |acc     | 0.40|±  |0.0492|
+|          |       |none  |acc_norm| 0.41|±  |0.0494|
+
+|  Tasks   |Version|Filter| Metric |Value|   |Stderr|
+|----------|-------|------|--------|----:|---|-----:|
+|openbookqa|{}     |none  |acc     | 0.38|±  |0.0488|
+|          |       |none  |acc_norm| 0.41|±  |0.0494|
+
+
+==== parsable ====
+acc:0.4,acc_norm:0.41
+acc:0.38,acc_norm:0.41

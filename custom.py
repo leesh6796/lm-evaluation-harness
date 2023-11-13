@@ -132,6 +132,8 @@ def main():
     # (1 + (1 - 2^(-M))) * 2 ** (2^E - 2 - bias)을 정리한 것.
     ctrl.kv.max_x = float((2 - 2 ** (-M)) * (2 ** (bias)))
     logging.info(f"[{args.format}] min_x: {ctrl.kv.min_x}, max_x: {ctrl.kv.max_x}")
+    ctrl.kv.E = E
+    ctrl.kv.M = M
 
     ctrl.kv.set_start_extraction()
     ctrl.kv.mode = "warmup"
@@ -188,6 +190,20 @@ def main():
     print(tables[0])
     print(tables[1])
     print()
+
+    if args.delta_layer_id is None:
+        delta_layer_id = "x"
+    elif args.delta_layer_id == -1:
+        delta_layer_id = "all"
+
+    print("==== info_start ====")
+    print(f"task,{args.task}")
+    print(f"limit,{args.limit}")
+    print(f"num_fewshot,{args.num_fewshot}")
+    print(f"delta_layer_id,{args.delta_layer_id}")
+    print(f"shift,{args.shift}")
+    print(f"format,{args.format}")
+    print("==== info_end ====")
 
     # ex)
     # ==== parsable ====

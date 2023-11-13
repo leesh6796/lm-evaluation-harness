@@ -1,0 +1,30 @@
+WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.
+Selected Tasks: ['hellaswag']
+hf-custom (pretrained=/mnt/models/llama/llama-2-7b-chat-hf), limit: 100.0, num_fewshot: 0, batch_size: 16
+|  Tasks  |Version|Filter| Metric |Value|   |Stderr|
+|---------|-------|------|--------|----:|---|-----:|
+|hellaswag|{}     |none  |acc     | 0.66|±  |0.0476|
+|         |       |none  |acc_norm| 0.79|±  |0.0409|
+
+[KVCache] Encoding to delta...
+hf-custom (pretrained=/mnt/models/llama/llama-2-7b-chat-hf), limit: 100.0, num_fewshot: 0, batch_size: 16
+|  Tasks  |Version|Filter| Metric |Value|   |Stderr|
+|---------|-------|------|--------|----:|---|-----:|
+|hellaswag|{}     |none  |acc     | 0.66|±  |0.0476|
+|         |       |none  |acc_norm| 0.78|±  |0.0416|
+
+==== result ====
+|  Tasks  |Version|Filter| Metric |Value|   |Stderr|
+|---------|-------|------|--------|----:|---|-----:|
+|hellaswag|{}     |none  |acc     | 0.66|±  |0.0476|
+|         |       |none  |acc_norm| 0.79|±  |0.0409|
+
+|  Tasks  |Version|Filter| Metric |Value|   |Stderr|
+|---------|-------|------|--------|----:|---|-----:|
+|hellaswag|{}     |none  |acc     | 0.66|±  |0.0476|
+|         |       |none  |acc_norm| 0.78|±  |0.0416|
+
+
+==== parsable ====
+acc:0.66,acc_norm:0.79
+acc:0.66,acc_norm:0.78
