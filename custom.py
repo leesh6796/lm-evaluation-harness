@@ -87,7 +87,7 @@ def main():
     ## ======== Experiment setting ========
     # [x] num_fewshot argument화
     # [x] delta_layer_id argument화 (all, None 넣어야 한다)
-    # [ ] delta_layer_id=None이면 delta 안구하고 KV만 fp8로 바꾸기
+    # [x] delta_layer_id=None이면 delta 안구하고 KV만 fp8로 바꾸기
     ctrl = KVControl()
     seed = 1003
 
@@ -195,14 +195,20 @@ def main():
         delta_layer_id = "x"
     elif args.delta_layer_id == -1:
         delta_layer_id = "all"
+    else:
+        delta_layer_id = args.delta_layer_id
 
     print("==== info_start ====")
-    print(f"task,{args.task}")
+    print(f"task,{args.tasks}")
     print(f"limit,{args.limit}")
     print(f"num_fewshot,{args.num_fewshot}")
-    print(f"delta_layer_id,{args.delta_layer_id}")
+    print(f"delta_layer_id,{delta_layer_id}")
     print(f"shift,{args.shift}")
     print(f"format,{args.format}")
+    if delta_layer_id != "x":
+        print(f"kvc_num_access,{ctrl.kv.num_access}")
+        print(f"kvc_num_hit,{ctrl.kv.num_hit}")
+        print(f"kvc_hit_ratio,{ctrl.kv.num_hit / ctrl.kv.num_access:.2f}")
     print("==== info_end ====")
 
     # ex)

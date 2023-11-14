@@ -1,0 +1,37 @@
+WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.
+Selected Tasks: ['copa']
+hf-custom (pretrained=/mnt/models/llama/llama-2-7b-chat-hf), limit: 100.0, num_fewshot: 0, batch_size: 16
+|Tasks|Version|Filter|Metric|Value|   |Stderr|
+|-----|-------|------|------|----:|---|-----:|
+|copa |{}     |none  |acc   | 0.84|±  |0.0368|
+
+[KVCache] Encoding to delta...
+hf-custom (pretrained=/mnt/models/llama/llama-2-7b-chat-hf), limit: 100.0, num_fewshot: 0, batch_size: 16
+|Tasks|Version|Filter|Metric|Value|   |Stderr|
+|-----|-------|------|------|----:|---|-----:|
+|copa |{}     |none  |acc   | 0.85|±  |0.0359|
+
+==== result ====
+|Tasks|Version|Filter|Metric|Value|   |Stderr|
+|-----|-------|------|------|----:|---|-----:|
+|copa |{}     |none  |acc   | 0.84|±  |0.0368|
+
+|Tasks|Version|Filter|Metric|Value|   |Stderr|
+|-----|-------|------|------|----:|---|-----:|
+|copa |{}     |none  |acc   | 0.85|±  |0.0359|
+
+
+==== info_start ====
+task,copa
+limit,100.0
+num_fewshot,0
+delta_layer_id,all
+shift,3
+format,E1M1
+kvc_num_access,111872
+kvc_num_hit,93920
+kvc_hit_ratio,0.84
+==== info_end ====
+==== parsable ====
+acc:0.84
+acc:0.85
