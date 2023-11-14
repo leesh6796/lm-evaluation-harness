@@ -54,8 +54,9 @@ def parse_args():
     parser.add_argument("--output_base_path", type=str, default=None)
 
     ### 실험 parameters
-    parser.add_argument("--num_fewshot", type=int, default=0)
-    parser.add_argument("--delta_layer_id", type=int, default=None)  # None은 x, -1은 전부
+    ### ,로 분리해서 list로 만들자
+    parser.add_argument("--num_fewshot", type=str, default=0)
+    parser.add_argument("--delta_layer_id", type=str, default=None)  # None은 x, -1은 전부
     parser.add_argument("--shift", type=int, default=0)
     parser.add_argument("--format", type=str, default="E4M3")
 

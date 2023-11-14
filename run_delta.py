@@ -17,6 +17,7 @@ def run(
     cmd = "CUDA_VISIBLE_DEVICES=0,1,2,3 python custom.py "
     cmd += "--model hf-custom "
     cmd += f"--model_args pretrained=/mnt/models/llama/llama-2-{model}-hf "
+    cmd += f"--model_path /mnt/models/llama/llama-2-{model}-hf "
     cmd += f"--tasks {task} "
     cmd += f"--batch_size {batch_size} "
     cmd += f"--max_batch_size {batch_size} "
